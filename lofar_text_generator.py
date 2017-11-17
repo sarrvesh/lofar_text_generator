@@ -15,6 +15,38 @@ class TooManyAteamError(Exception):
     """Raised when more than 2 A-team sources are specified"""
     pass
 
+class TooManyBeamletsError(Exception):
+    """Raised if more than 488 beamlets are specified"""
+    pass
+
+class TooLongFolderNameError(Exception):
+    """Raised when the main folder name is too long"""
+    pass
+
+class InvalidMainFolderNameError(Exception):
+    """Raised when the main folder name is invalid"""
+    pass
+
+class InvalidDateTimeError(Exception):
+    """Raised when the specified date/time is invalid"""
+    pass
+
+class InvalidElevationError(Exception):
+    """Raised when the specified elevation is invalid"""
+    pass
+
+class InvalidAverageError(Exception):
+    """Raised if the averaging parameters are wrong"""
+    pass
+
+class InvalidSubbandError(Exception):
+    """Raised if the subband list is invalid"""
+    pass
+
+class InvalidDurationError(Exception):
+    """Raised if the specified duration is invalid"""
+    pass
+
 class Imaging():
     """
     Imaging class defines all attributes and methods relevant for an 
@@ -49,18 +81,13 @@ class Imaging():
         """
         # Get the project name
         self.projectName = gui.projNameT.get()
-        if self.projectName == '' or len(self.projectName) != 7:
-            showErrorPopUp('Invalid project name')
-            raise IOError
-
+        
         # Get the main folder name
         self.mainName = gui.mainNameT.get()
         if len(self.mainName) > 20:
-            showErrorPopUp('Main folder name cannot be longer than 20 characters.')
-            raise IOError
+            raise TooLongFolderNameError
         if self.mainName == '':
-            showErrorPopUp('Invalid main folder name.')
-            raise IOError
+            raise InvalidMainFolderNameError
 
         #Parse datetime and make datetime object
         try:
@@ -68,30 +95,25 @@ class Imaging():
             self.startTime = datetime.datetime(int(dy), int(dm), int(ds), \
                                                int(th), int(tm), int(ts))
         except:
-            showErrorPopUp('Invalid date/time specified.')
-            raise IOError
+            raise InvalidDateTimeError
 
         # Get minimum elevation to select a calibrator
         try:
             self.elevation = float(gui.elevationT.get())
         except ValueError:
-            showErrorPopUp('Invalid elevation specified.')
-            raise IOError
+            raise InvalidElevationError
         if self.elevation < 0. or self.elevation > 90.:
-            showErrorPopUp('Invalid elevation specified.')
-            raise IOError
+            raise InvalidElevationError
             
         # Get the averaging factors
         self.avg = gui.avgT.get()
         if len(self.avg.split(',')) != 2:
-            showErrorPopUp('Invalid averaging specified.')
-            raise IOError
+            raise InvalidAverageError
         try:
            float(self.avg.split(',')[0])
            float(self.avg.split(',')[1])
         except ValueError:
-            showErrorPopUp('Invalid averaging specified.')
-            raise IOError
+            raise InvalidAverageError
 
         # Get sub band list
         self.subbands = gui.subbandT.get()
@@ -102,21 +124,20 @@ class Imaging():
             self.targetLabel, self.targetRA, self.targetDec, self.demixLabel =\
                 self._parsePointString(str(gui.pointT.get('1.0','end-1c')))
         except ValueError:
-            showErrorPopUp('Invalid subband value specified.')
+            raise InvalidSubbandError
         self.nBeams = len(self.targetLabel)
         
         # Check for the number of beamlets
         if self.nBeams * self.nSubBands > 488:
-            showErrorPopUp('Too many subbands/beams specified.')
-            raise IOError
+            raise TooManyBeamletsError
         
         # Get the observation duration
         try:
             self.targetObsLength = float(gui.durationT.get())
         except ValueError:
-            showErrorPopUp('Invalid duration specified.')
+            raise InvalidDurationError
         if self.targetObsLength < 0.:
-            showErrorPopUp('Invalid duration specified.')
+            raise InvalidDurationError
 
     def _countSubBands(self):
         """
@@ -397,7 +418,7 @@ class GuiWindow():
             # This is tier-1 setup
             tier1List = '104..136,138..163,165..180,182..184,187..209,'+\
                     '212..213,215..240,242..255,257..273,275..300,302..328,'+\
-                    '330..347,349,364,372,380,388,396,404,413,421,430,438,447;243'
+                    '330..347,349,364,372,380,388,396,404,413,421,430,438,447'
             self.subbandT.configure(state='normal')
             self.subbandT.delete(0, tk.END)
             self.subbandT.insert(0, tier1List)
@@ -434,7 +455,38 @@ class GuiWindow():
         after the SUBMIT button is clicked.
         """
         outFile = open('output.txt', 'w')
-        img = Imaging(self)
+        try:
+            img = Imaging(self)
+        except TooLongFolderNameError:
+            showErrorPopUp('Main folder name cannot be longer than 20 '+\
+                           'characters.')
+            return None
+        except InvalidMainFolderNameError:
+            showErrorPopUp('Invalid main folder name.')
+            return None
+        except InvalidDateTimeError:
+            showErrorPopUp('Entered date/time is invalid.')
+            return None
+        except InvalidElevationError:
+            showErrorPopUp('Specified elevation is invalid.')
+            return None
+        except InvalidAverageError:
+            showErrorPopUp('Invalid averaging parameters specified.')
+            return None
+        except InvalidSubbandError:
+            showErrorPopUp('Invalid subband specified.')
+            return None
+        except TooManyBeamletsError:
+            showErrorPopUp('No. of subbands * pointings cannot be more than'+\
+                           '488.')
+            return None
+        except InvalidDurationError:
+            showErrorPopUp('Specified target scan duration is invalid')
+            return None
+        except: 
+            showErrorPopUp('Encountered unknown error. Contact Sarrvesh '+\
+                           'if this happens.')
+            return None
 
         # Write the header section
         img.makeHeader(outFile)

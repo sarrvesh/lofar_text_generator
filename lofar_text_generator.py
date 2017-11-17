@@ -117,7 +117,10 @@ class Imaging():
 
         # Get sub band list
         self.subbands = gui.subbandT.get()
-        self.nSubBands = self._countSubBands()
+        try:
+            self.nSubBands = self._countSubBands()
+        except:
+            raise InvalidSubbandError
         
         # Get the pointing string
         try:
@@ -148,8 +151,13 @@ class Imaging():
         for item in self.subbands.split(','):
             # Is it a single number?
             if '..' not in item:
+                # Raise a ValueError if item is not a number
+                float(item)
                 count += 1
             else:
+                # Raise a ValueError if subband range is invalid
+                float(item.split('..')[0])
+                float(item.split('..')[1])
                 count += (float(item.split('..')[1]) - float(item.split('..')[0]) + 1)
         return count
 

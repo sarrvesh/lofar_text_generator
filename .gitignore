@@ -99,3 +99,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# All txt and xml files
+*. txt
+*.xml

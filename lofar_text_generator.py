@@ -95,11 +95,20 @@ class Imaging():
 
         # Get sub band list
         self.subbands = gui.subbandT.get()
-
+        self.nSubBands = self._countSubBands()
+        
         # Get the pointing string
-        self.targetLabel, self.targetRA, self.targetDec, self.demixLabel =\
-            self._parsePointString(str(gui.pointT.get('1.0','end-1c')))
+        try:
+            self.targetLabel, self.targetRA, self.targetDec, self.demixLabel =\
+                self._parsePointString(str(gui.pointT.get('1.0','end-1c')))
+        except ValueError:
+            showErrorPopUp('Invalid subband value specified.')
         self.nBeams = len(self.targetLabel)
+        
+        # Check for the number of beamlets
+        if self.nBeams * self.nSubBands > 488:
+            showErrorPopUp('Too many subbands/beams specified.')
+            raise IOError
         
         # Get the observation duration
         try:
@@ -108,6 +117,20 @@ class Imaging():
             showErrorPopUp('Invalid duration specified.')
         if self.targetObsLength < 0.:
             showErrorPopUp('Invalid duration specified.')
+
+    def _countSubBands(self):
+        """
+        Parse the subband string and count the number of subbands
+        """
+        print self.subbands.split(',')
+        count = 0
+        for item in self.subbands.split(','):
+            # Is it a single number?
+            if '..' not in item:
+                count += 1
+            else:
+                count += (float(item.split('..')[1]) - float(item.split('..')[0]) + 1)
+        return count
 
     def _parsePointString(self, strFromTextBox):
         """
@@ -333,7 +356,7 @@ class GuiWindow():
         self.subbandR2 = tk.Radiobutton(self.frame, text='user-defined', \
                                         variable=self.subbandOption, value=2,\
                                         command=self._setSubbandText)
-        self.subbandR2.grid(row=rowIdx, column=1, padx=70, sticky='W')
+        self.subbandR2.grid(row=rowIdx, column=1, padx=80, sticky='W')
         rowIdx+= 1
         self.subbandT = tk.Entry(self.frame, width=45)
         self.subbandT.configure(state='readonly')

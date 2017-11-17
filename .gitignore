@@ -101,5 +101,5 @@ ENV/
 .mypy_cache/
 
 # All txt and xml files
-*. txt
+*.txt
 *.xml

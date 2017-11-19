@@ -158,7 +158,8 @@ class Imaging():
                 # Raise a ValueError if subband range is invalid
                 float(item.split('..')[0])
                 float(item.split('..')[1])
-                count += (float(item.split('..')[1]) - float(item.split('..')[0]) + 1)
+                count += (int(item.split('..')[1]) - \
+                         int(item.split('..')[0]) + 1)
         return count
 
     def _parsePointString(self, strFromTextBox):
@@ -251,7 +252,8 @@ class Imaging():
         outFile.write('startTimeUTC={}\n'.format(startTime.isoformat(' ')))
         outFile.write('targetDuration_s=600\n')
         outFile.write(Imaging.COMMON_STR+'\n')
-        outFile.write('Global_Subbands={}\n'.format(self.subbands))
+        outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
+                       self.nSubBands))
         outFile.write('targetBeams=\n')
         outFile.write('{};{};;;;;T;1800\n'.format(\
                       self._getCalPointing(calibName),\
@@ -276,7 +278,8 @@ class Imaging():
         outFile.write('targetDuration_s={}\n'.format(int(\
                       self.targetObsLength*3600.)))
         outFile.write(Imaging.COMMON_STR+'\n')
-        outFile.write('Global_Subbands={}\n'.format(self.subbands))
+        outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
+                      self.nSubBands))
         outFile.write('targetBeams=\n')
         # If we have more than one target beam, we need to set the 
         # reference tile beam.
@@ -303,6 +306,7 @@ class Imaging():
                           self.targetLabel[index],))
             outFile.write('Demix={};64;10;;{};F\n'.format(\
                           self.avg.replace(',', ';'), demixStr))
+        outFile.write('\n')
         # Return the start time for the next block
         return startTime + datetime.timedelta(hours=self.targetObsLength, \
                minutes=1)

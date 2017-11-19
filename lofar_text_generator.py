@@ -59,22 +59,6 @@ class Imaging():
     # Have a list of valid A-team sources
     VALID_ATEAMS = ['CasA', 'CygA', 'TauA', 'VirA']
     
-    # Common string 
-    COMMON_STR = "split_targets=F\ncalibration=none\n"\
-                "processing=Preprocessing\n"\
-                "imagingPipeline=none\ncluster=CEP4\nrepeat=1\n"\
-                "nr_tasks=122\nnr_cores_per_task=2\npackageDescription="\
-                "HBA Dual Inner, 110-190MHz, 8bits, 48MHz@144MHz, 1s,"\
-                " 64ch/sb\nantennaMode=HBA Dual Inner\nclock=200 MHz\n"\
-                "instrumentFilter=110-190 MHz\nnumberOfBitsPerSample=8\n"\
-                "integrationTime=1.0\nchannelsPerSubband=64\n"\
-                "stationList=all\ntbbPiggybackAllowed=T\n"\
-                "aartfaacPiggybackAllowed=T\ncorrelatedData=T\n"\
-                "coherentStokesData=F\nincoherentStokesData=F\nflysEye=F\n"\
-                "coherentDedisperseChannels=False\n"\
-                "flaggingStrategy=HBAdefault\n"\
-                "timeStep1=60\ntimeStep2=60"
-    
     def __init__(self, gui):
         """
         Initialize the Imaging class and do check for input validity
@@ -116,6 +100,8 @@ class Imaging():
             raise InvalidAverageError
 
         # Get sub band list
+        self.rcumode = gui.freqModeStr.get()
+        self.clockFreq = self._getClockFreq()
         self.subbands = gui.subbandT.get()
         try:
             self.nSubBands = self._countSubBands()
@@ -141,6 +127,31 @@ class Imaging():
             raise InvalidDurationError
         if self.targetObsLength < 0.:
             raise InvalidDurationError
+        
+        # String common to all imaging blocks
+        self.COMMON_STR = "split_targets=F\ncalibration=none\n"\
+                "processing=Preprocessing\n"\
+                "imagingPipeline=none\ncluster=CEP4\nrepeat=1\n"\
+                "nr_tasks=122\nnr_cores_per_task=2\npackageDescription="\
+                "HBA Dual Inner, {}, 8bits, ".format(self.rcumode) + \
+                "48MHz@144MHz, 1s, 64ch/sb\nantennaMode=HBA Dual Inner\n"\
+                "numberOfBitsPerSample=8\n"\
+                "integrationTime=1.0\nchannelsPerSubband=64\n"\
+                "stationList=all\ntbbPiggybackAllowed=T\n"\
+                "aartfaacPiggybackAllowed=T\ncorrelatedData=T\n"\
+                "coherentStokesData=F\nincoherentStokesData=F\nflysEye=F\n"\
+                "coherentDedisperseChannels=False\n"\
+                "flaggingStrategy=HBAdefault\n"\
+                "timeStep1=60\ntimeStep2=60"
+
+    def _getClockFreq(self):
+        """
+        Returns the appropriate clock frequency for the selected RCU mode.
+        """
+        if self.rcumode == '170-230 MHz':
+            return '160 MHz'
+        else:
+            return '200 MHz'
 
     def _countSubBands(self):
         """
@@ -185,7 +196,8 @@ class Imaging():
         outFile.write('projectName={}\n'.format(self.projectName))
         outFile.write('mainFolderName={}\n'.format(self.mainName))
         outFile.write('mainFolderDescription=Preprocessing:HBA Dual Inner,'+\
-                      ' 110-190MHz, 8bits, 48MHz@144MHz, 1s, 64ch/sb\n\n')
+                      ' {}, 8bits, 48MHz@144MHz, 1s, 64ch/sb\n\n'\
+                      .format(self.rcumode))
     
     def findCalibrator(self, time):
         """
@@ -251,7 +263,9 @@ class Imaging():
         outFile.write('packageName={}\n'.format(calibName))
         outFile.write('startTimeUTC={}\n'.format(startTime.isoformat(' ')))
         outFile.write('targetDuration_s=600\n')
-        outFile.write(Imaging.COMMON_STR+'\n')
+        outFile.write('clock={}\n'.format(self.clockFreq))
+        outFile.write('instrumentFilter={}\n'.format(self.rcumode))
+        outFile.write(self.COMMON_STR+'\n')
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                        self.nSubBands))
         outFile.write('targetBeams=\n')
@@ -277,7 +291,9 @@ class Imaging():
         outFile.write('startTimeUTC={}\n'.format(startTime.isoformat(' ')))
         outFile.write('targetDuration_s={}\n'.format(int(\
                       self.targetObsLength*3600.)))
-        outFile.write(Imaging.COMMON_STR+'\n')
+        outFile.write('clock={}\n'.format(self.clockFreq))
+        outFile.write('instrumentFilter={}\n'.format(self.rcumode))
+        outFile.write(self.COMMON_STR+'\n')
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                       self.nSubBands))
         outFile.write('targetBeams=\n')
@@ -336,8 +352,8 @@ class GuiWindow():
         """
         self.root = tk.Tk()
         self.root.title('LOFAR Imaging Text Generator')
-        self.root.geometry('580x330')
-        self.root.option_add('*Font', 'helvetica 12')
+        self.root.geometry('580x400')
+        self.root.option_add('*Font', 'helvetica 11')
                 
         self.frame = tk.Frame(self.root, padx=5, pady=5)
         self.frame.grid()
@@ -381,6 +397,15 @@ class GuiWindow():
         rowIdx += 1
         self.subbandL = tk.Label(self.frame, text='Sub band list:')
         self.subbandL.grid(row=rowIdx, sticky='E')
+        self.freqModeStr = tk.StringVar()
+        freqModes = {'210-290 MHz', '170-230 MHz', '110-190 MHz', '30-90 MHz',\
+                     '10-90 MHz', '30-90 MHz', '10-90 MHz'}
+        self.freqModeStr.set('110-190 MHz')
+        self.freqModeOption = tk.OptionMenu(self.frame, self.freqModeStr, \
+                                            *freqModes)
+        self.freqModeOption.configure(state='disabled')
+        self.freqModeOption.grid(row=rowIdx, column=1, sticky='W')
+        rowIdx += 1
         self.subbandOption = tk.IntVar()
         self.subbandR1 = tk.Radiobutton(self.frame, text='Tier-1', \
                                         variable=self.subbandOption, value=1,\

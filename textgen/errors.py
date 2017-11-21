@@ -1,3 +1,5 @@
+import sys
+
 class InvalidATeamError(Exception):
     """Raised when invalid demix source is specified"""
     pass
@@ -53,3 +55,26 @@ class NoGoodLBACalibratorError(Exception):
 class SourceAtLowElevationError(Exception):
     """Raised if the target is below a 30deg elevation."""
     pass
+
+def getErrorMessage():
+    return {
+        'TooLongFolderNameError': 'Main folder name cannot be longer than 20 '\
+                                  'characters.',
+        'InvalidMainFolderNameError': 'Invalid main folder name.',
+        'InvalidDateTimeError': 'Entered date/time is invalid.',
+        'InvalidElevationError': 'Specified elevation is invalid.',
+        'InvalidAverageError': 'Invalid averaging parameters specified.',
+        'InvalidSubbandError': 'Invalid subband specified.'
+        'TooManyBeamletsError': 'No. of subbands x pointings cannot be more '\
+                                'than 488.',
+        'InvalidDurationError': 'Specified target scan duration is invalid.',
+        'OutOfBoundsSubBandError': 'One of the specified subband is outside '\
+                                   'the selected filter.',
+        'InvalidSubBandOrderError': 'Invalid subband specification. X cannot '\
+                                    'be greater than Y in "X..Y".',
+        'SourceAtLowElevationError': 'One of the specified targets is below '\
+                                     '30 degrees',
+        'InvalidATeamError': 'Invalid A-team source.',
+        'TooManyAteamError': 'Cannot demix more than 2 sources.',
+        'NoGoodLBACalibratorError': 'Could not find a good calibrator.',
+    }[sys.exc_type.__name__]

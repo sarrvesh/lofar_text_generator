@@ -205,48 +205,10 @@ class GuiWindow():
         outFile = open('output.txt', 'w')
         try:
             img = Imaging(self)
-        except TooLongFolderNameError:
-            showErrorPopUp('Main folder name cannot be longer than 20 '+\
-                           'characters.')
+        except:
+            errString = getErrorMessage()
+            showErrorPopUp(errString)
             return None
-        except InvalidMainFolderNameError:
-            showErrorPopUp('Invalid main folder name.')
-            return None
-        except InvalidDateTimeError:
-            showErrorPopUp('Entered date/time is invalid.')
-            return None
-        except InvalidElevationError:
-            showErrorPopUp('Specified elevation is invalid.')
-            return None
-        except InvalidAverageError:
-            showErrorPopUp('Invalid averaging parameters specified.')
-            return None
-        except InvalidSubbandError:
-            showErrorPopUp('Invalid subband specified.')
-            return None
-        except TooManyBeamletsError:
-            showErrorPopUp('No. of subbands * pointings cannot be more than'+\
-                           ' 488.')
-            return None
-        except InvalidDurationError:
-            showErrorPopUp('Specified target scan duration is invalid')
-            return None
-        except OutOfBoundsSubBandError:
-            showErrorPopUp('One of the specified subband is outside the '+\
-                           'selected filter.')
-            return None
-        except InvalidSubBandOrderError:
-            showErrorPopUp('Invalid subband specification. A cannot be '+\
-                           'greater than B in "A..B".')
-            return None
-        except SourceAtLowElevationError:
-            showErrorPopUp('One of the specified targets is below 30 '+\
-                           'degrees.')
-            return None
-        #except: 
-        #    showErrorPopUp('Encountered unknown error. Contact Sarrvesh '+\
-        #                   'if this happens.')
-        #    return None
 
         # Write the header section
         img.makeHeader(outFile)
@@ -255,14 +217,9 @@ class GuiWindow():
         if img.rcumode == '10-90 MHz' or img.rcumode == '30-90 MHz':
             try:
                 startTime = img.writeTarget(startTime, outFile)
-            except InvalidATeamError:
-                showErrorPopUp('Invalid A-team source.')
-                return None
-            except TooManyAteamError:
-                showErrorPopUp('Cannot demix more than 2 sources.')
-                return None
-            except NoGoodLBACalibratorError:
-                showErrorPopUp('Could not find a good calibrator.')
+            except:
+                errString = getErrorMessage()
+                showErrorPopUp(errString)
                 return None
         else:
             # Write the first calibrator block
@@ -275,11 +232,9 @@ class GuiWindow():
             # Write the target block
             try:
                 startTime = img.writeTarget(startTime, outFile)
-            except InvalidATeamError:
-                showErrorPopUp('Invalid A-team source.')
-                return None
-            except TooManyAteamError:
-                showErrorPopUp('Cannot demix more than 2 sources.')
+            except:
+                errString = getErrorMessage()
+                showErrorPopUp(errString)
                 return None
             # Write the second calibrator block
             calName = img.findHBACalibrator(startTime, calName)

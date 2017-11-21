@@ -11,7 +11,7 @@ class GuiWindow():
         """
         self.root = tk.Tk()
         self.root.title('LOFAR Imaging Text Generator')
-        self.root.geometry('580x440')
+        self.root.geometry('580x470')
         self.root.option_add('*Font', 'helvetica 11')
                 
         frame = tk.Frame(self.root, padx=5, pady=5)
@@ -33,7 +33,7 @@ class GuiWindow():
         dateL = tk.Label(frame, text='Start date/time:')
         dateL.grid(row=rowIdx, sticky='E')
         self.dateT = tk.Entry(frame)
-        self.dateT.insert(0, '2017-11-11-11-11-11')
+        self.dateT.insert(0, 'yyyy-mm-dd-hh-mm-ss')
         #self.dateT.bind('<Button-1>', self.clearEntry)
         self.dateT.grid(row=rowIdx, column=1, sticky='W')
         
@@ -108,7 +108,7 @@ class GuiWindow():
                                  'multiple sources):', width=170)
         pointL.grid(row=rowIdx, sticky='E')
         self.pointT = tk.Text(frame, height=3, width=45)
-        self.pointT.insert(tk.END, '<label>,0:0:0,0:0:0,<demix>')
+        self.pointT.insert(tk.END, '<label>,<ra (hms)>,<dec (dms)>,<demix>')
         self.pointT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
@@ -184,6 +184,7 @@ class GuiWindow():
         self.dateT.delete(0, tk.END)
         self.dateT.insert(0, 'yyyy-mm-dd-hh-mm-ss')
         self.elevationT.delete(0, tk.END)
+        self.elevationT.insert(0, '20')
         self.avgT.delete(0, tk.END)
         self.avgT.insert(0, '4,1')
         self.subbandR1.configure(state='normal')
@@ -194,6 +195,7 @@ class GuiWindow():
         self.pointT.delete(1.0, tk.END)
         self.pointT.insert(tk.END, '<label>,<ra (hms)>,<dec (dms)>,<demix>')
         self.freqModeStr.set('110-190 MHz')
+        self.arrayConfigStr.set('International')
         optionMenu = self.antennaModeOption.children["menu"]
         optionMenu.delete(0, "end")
         antMode = ['HBA Zero', 'HBA Zero Inner', 'HBA One', \

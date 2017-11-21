@@ -394,7 +394,7 @@ class GuiWindow():
         """
         self.root = tk.Tk()
         self.root.title('LOFAR Imaging Text Generator')
-        self.root.geometry('580x400')
+        self.root.geometry('580x440')
         self.root.option_add('*Font', 'helvetica 11')
                 
         self.frame = tk.Frame(self.root, padx=5, pady=5)
@@ -446,7 +446,6 @@ class GuiWindow():
         self.freqModeOption = tk.OptionMenu(self.frame, self.freqModeStr, \
                                             *freqModes, \
                                             command=self._changeAntennaMode)
-        #self.freqModeOption.configure(state='disabled')
         self.freqModeOption.grid(row=rowIdx, column=1, sticky='W')
         rowIdx += 1
         self.subbandOption = tk.IntVar()
@@ -551,7 +550,6 @@ class GuiWindow():
         """
         Reset the gui to original state
         """
-        """
         self.projNameT.delete(0, tk.END)
         self.mainNameT.delete(0, tk.END)
         self.dateT.delete(0, tk.END)
@@ -559,6 +557,7 @@ class GuiWindow():
         self.elevationT.delete(0, tk.END)
         self.avgT.delete(0, tk.END)
         self.avgT.insert(0, '4,1')
+        self.subbandR1.configure(state='normal')
         self.subbandOption.set(None)
         self.subbandT.configure(state='normal')
         self.subbandT.delete(0, tk.END)
@@ -575,7 +574,7 @@ class GuiWindow():
         for mode in antMode:
             optionMenu.add_command(label=mode, command=tk._setit(\
                                    self.antennaModeStr, mode))
-        """
+        
 
     def clearEntry(self, event):
         event.widget.delete(0, 'end')

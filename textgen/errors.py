@@ -64,7 +64,7 @@ def getErrorMessage():
         'InvalidDateTimeError': 'Entered date/time is invalid.',
         'InvalidElevationError': 'Specified elevation is invalid.',
         'InvalidAverageError': 'Invalid averaging parameters specified.',
-        'InvalidSubbandError': 'Invalid subband specified.'
+        'InvalidSubbandError': 'Invalid subband specified.',
         'TooManyBeamletsError': 'No. of subbands x pointings cannot be more '\
                                 'than 488.',
         'InvalidDurationError': 'Specified target scan duration is invalid.',

@@ -47,6 +47,14 @@ class InvalidDurationError(Exception):
     """Raised if the specified duration is invalid"""
     pass
 
+class OutOfBoundsSubBandError(Exception):
+    """Raised if the specified subband is outside the filter"""
+    pass
+
+class InvalidSubBandOrderError(Exception):
+    """Raised if B>A in A..B"""
+    pass
+
 class Imaging():
     """
     Imaging class defines all attributes and methods relevant for an 
@@ -103,11 +111,9 @@ class Imaging():
         self.rcumode = gui.freqModeStr.get()
         self.clockFreq = self._getClockFreq()
         self.subbands = gui.subbandT.get()
-        try:
-            self.nSubBands = self._countSubBands()
-        except:
-            raise InvalidSubbandError
-        
+        self._validateSubBands()
+        self.nSubBands = self._countSubBands()
+                
         # Get the pointing string
         try:
             self.targetLabel, self.targetRA, self.targetDec, self.demixLabel =\
@@ -132,7 +138,7 @@ class Imaging():
         self.COMMON_STR = "split_targets=F\ncalibration=none\n"\
                 "processing=Preprocessing\n"\
                 "imagingPipeline=none\ncluster=CEP4\nrepeat=1\n"\
-                "nr_tasks=122\nnr_cores_per_task=2\npackageDescription="\
+                "nr_cores_per_task=2\npackageDescription="\
                 "HBA Dual Inner, {}, 8bits, ".format(self.rcumode) + \
                 "48MHz@144MHz, 1s, 64ch/sb\nantennaMode=HBA Dual Inner\n"\
                 "numberOfBitsPerSample=8\n"\
@@ -153,24 +159,58 @@ class Imaging():
         else:
             return '200 MHz'
 
+    def _validateSubBands(self):
+        """
+        Parse the subband string and check if they are all valid
+        """
+        for item in self.subbands.split(','):
+            # Is it a single number?
+            if '..' not in item:
+                try: 
+                    s1 = int(item)
+                except:
+                    raise InvalidSubBandError
+                if self.rcumode == '30-90 MHz':
+                    if s1<154 or s1>461:
+                        raise OutOfBoundsSubBandError
+                elif self.rcumode == '170-230 MHz':
+                    if s1<64 or s1>448:
+                        raise OutOfBoundsSubBandError
+                else:
+                    if s1<51 or s1>461:
+                        raise OutOfBoundsSubBandError
+            # Is it a range?
+            else:
+                try:
+                    s1 = int(item.split('..')[0])
+                    s2 = int(item.split('..')[1])
+                except ValueError:
+                    raise InvalidSubBandError
+                if s1>s2:
+                    raise InvalidSubBandOrderError
+                if self.rcumode == '30-90 MHz':
+                    if s1<154 or s2>461:
+                        raise OutOfBoundsSubBandError
+                elif self.rcumode == '170-230 MHz':
+                    if s1<64 or s2>448:
+                        raise OutOfBoundsSubBandError
+                else:
+                    if s1<51 or s2>461:
+                        raise OutOfBoundsSubBandError
+
     def _countSubBands(self):
         """
         Parse the subband string and count the number of subbands
         """
-        print self.subbands.split(',')
         count = 0
         for item in self.subbands.split(','):
             # Is it a single number?
             if '..' not in item:
-                # Raise a ValueError if item is not a number
-                float(item)
                 count += 1
             else:
-                # Raise a ValueError if subband range is invalid
-                float(item.split('..')[0])
-                float(item.split('..')[1])
-                count += (int(item.split('..')[1]) - \
-                         int(item.split('..')[0]) + 1)
+                s1 = int(item.split('..')[0])
+                s2 = int(item.split('..')[1])
+                count += (s2 - s1 + 1)
         return count
 
     def _parsePointString(self, strFromTextBox):
@@ -265,6 +305,7 @@ class Imaging():
         outFile.write('targetDuration_s=600\n')
         outFile.write('clock={}\n'.format(self.clockFreq))
         outFile.write('instrumentFilter={}\n'.format(self.rcumode))
+        outFile.write('nr_tasks={}\n'.format(int(self.nSubBands)/2))
         outFile.write(self.COMMON_STR+'\n')
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                        self.nSubBands))
@@ -293,6 +334,7 @@ class Imaging():
                       self.targetObsLength*3600.)))
         outFile.write('clock={}\n'.format(self.clockFreq))
         outFile.write('instrumentFilter={}\n'.format(self.rcumode))
+        outFile.write('nr_tasks={}\n'.format(int(self.nSubBands)/2))
         outFile.write(self.COMMON_STR+'\n')
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                       self.nSubBands))
@@ -398,12 +440,13 @@ class GuiWindow():
         self.subbandL = tk.Label(self.frame, text='Sub band list:')
         self.subbandL.grid(row=rowIdx, sticky='E')
         self.freqModeStr = tk.StringVar()
-        freqModes = {'210-290 MHz', '170-230 MHz', '110-190 MHz', '30-90 MHz',\
-                     '10-90 MHz', '30-90 MHz', '10-90 MHz'}
+        freqModes = ['10-90 MHz', '30-90 MHz', '110-190 MHz', '170-230 MHz',\
+                     '210-290 MHz']
         self.freqModeStr.set('110-190 MHz')
         self.freqModeOption = tk.OptionMenu(self.frame, self.freqModeStr, \
-                                            *freqModes)
-        self.freqModeOption.configure(state='disabled')
+                                            *freqModes, \
+                                            command=self._changeAntennaMode)
+        #self.freqModeOption.configure(state='disabled')
         self.freqModeOption.grid(row=rowIdx, column=1, sticky='W')
         rowIdx += 1
         self.subbandOption = tk.IntVar()
@@ -419,6 +462,17 @@ class GuiWindow():
         self.subbandT = tk.Entry(self.frame, width=45)
         self.subbandT.configure(state='readonly')
         self.subbandT.grid(row=rowIdx, column=1, sticky='W')
+        
+        rowIdx += 1
+        AntennaModeL = tk.Label(self.frame, text='Antenna mode:')
+        AntennaModeL.grid(row=rowIdx, sticky='E')
+        self.antennaModeStr = tk.StringVar()
+        antMode = ['HBA Zero', 'HBA Zero Inner', 'HBA One', \
+                   'HBA One Inner', 'HBA Dual', 'HBA Dual Inner', \
+                   'HBA Joined', 'HBA Joined Inner']
+        self.antennaModeOption = tk.OptionMenu(self.frame, \
+                                               self.antennaModeStr, *antMode)
+        self.antennaModeOption.grid(row=rowIdx, column=1, sticky='W')        
         
         rowIdx += 1
         self.pointL = tk.Message(self.frame, text='Target pointing, '+\
@@ -445,6 +499,34 @@ class GuiWindow():
                                  command=self.resetForms)
         self.cancelB.grid(row=rowIdx, column=1, padx=100, sticky='W', pady=10)
 
+    def _changeAntennaMode(self, *args):
+        """
+        Set the antenna mode dropdown button based on the chosen RCU mode. 
+        Note that at the same time, we should also disable the Tier-1 
+        option button
+        """
+        optionMenu = self.antennaModeOption.children["menu"]
+        optionMenu.delete(0, "end")
+        option = self.freqModeStr.get()
+        if option == '210-290 MHz' or option == '170-230 MHz' or \
+           option == '110-190 MHz':
+            # Display all HBA modes
+            antMode = ['HBA Zero', 'HBA Zero Inner', 'HBA One', \
+                       'HBA One Inner', 'HBA Dual', 'HBA Dual Inner', \
+                       'HBA Joined', 'HBA Joined Inner']
+            self.antennaModeStr.set('HBA Dual Inner')
+            self.subbandR1.configure(state='normal')
+        else:
+            # Display all LBA modes
+            antMode = ['LBA Inner', 'LBA Outer', 'LBA Sparse Even', \
+                       'LBA Sparse Odd', 'LBA X', 'LBA Y']
+            self.antennaModeStr.set('LBA Outer')
+            self.subbandR1.configure(state='disabled')
+            self.subbandOption.set(2); self._setSubbandText()
+        for mode in antMode:
+            optionMenu.add_command(label=mode, command=tk._setit(\
+                                   self.antennaModeStr, mode))
+
     def _setSubbandText(self):
         """
         Based on which radio button is enabled, set the appropriate value in 
@@ -469,6 +551,7 @@ class GuiWindow():
         """
         Reset the gui to original state
         """
+        """
         self.projNameT.delete(0, tk.END)
         self.mainNameT.delete(0, tk.END)
         self.dateT.delete(0, tk.END)
@@ -482,6 +565,17 @@ class GuiWindow():
         self.subbandT.configure(state='readonly')
         self.pointT.delete(1.0, tk.END)
         self.pointT.insert(tk.END, '<label>,<ra (hms)>,<dec (dms)>,<demix>')
+        self.freqModeStr.set('110-190 MHz')
+        optionMenu = self.antennaModeOption.children["menu"]
+        optionMenu.delete(0, "end")
+        antMode = ['HBA Zero', 'HBA Zero Inner', 'HBA One', \
+                   'HBA One Inner', 'HBA Dual', 'HBA Dual Inner', \
+                   'HBA Joined', 'HBA Joined Inner']
+        self.antennaModeStr.set('HBA Dual Inner')
+        for mode in antMode:
+            optionMenu.add_command(label=mode, command=tk._setit(\
+                                   self.antennaModeStr, mode))
+        """
 
     def clearEntry(self, event):
         event.widget.delete(0, 'end')
@@ -515,10 +609,18 @@ class GuiWindow():
             return None
         except TooManyBeamletsError:
             showErrorPopUp('No. of subbands * pointings cannot be more than'+\
-                           '488.')
+                           ' 488.')
             return None
         except InvalidDurationError:
             showErrorPopUp('Specified target scan duration is invalid')
+            return None
+        except OutOfBoundsSubBandError:
+            showErrorPopUp('One of the specified subband is outside the '+\
+                           'selected filter.')
+            return None
+        except InvalidSubBandOrderError:
+            showErrorPopUp('Invalid subband specification. A cannot be '+\
+                           'greater than B in "A..B".')
             return None
         except: 
             showErrorPopUp('Encountered unknown error. Contact Sarrvesh '+\

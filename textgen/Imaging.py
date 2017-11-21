@@ -57,6 +57,13 @@ class Imaging():
            float(self.avg.split(',')[1])
         except ValueError:
             raise InvalidAverageError
+            
+        # Get the array configuration
+        arrayStr = gui.arrayConfigStr.get()
+        self.arrayConfig = {'Super-terp only': 'superterp',
+                            'Core stations': 'core',
+                            'Dutch stations': 'NL',
+                            'International': 'all'}[arrayStr]
 
         # Get sub band list
         self.antennaMode = gui.antennaModeStr.get()
@@ -102,7 +109,7 @@ class Imaging():
                 "{}, {}, 8bits, ".format(self.antennaMode, self.rcumode) + \
                 "1s, 64ch/sb\nnumberOfBitsPerSample=8\n"\
                 "integrationTime=1.0\nchannelsPerSubband=64\n"\
-                "stationList=all\ntbbPiggybackAllowed=T\n"\
+                "tbbPiggybackAllowed=T\n"\
                 "aartfaacPiggybackAllowed=T\ncorrelatedData=T\n"\
                 "coherentStokesData=F\nincoherentStokesData=F\nflysEye=F\n"\
                 "coherentDedisperseChannels=False\n"\
@@ -322,7 +329,8 @@ class Imaging():
         outFile.write('instrumentFilter={}\n'.format(self.rcumode))
         outFile.write('nr_tasks={}\n'.format(int(self.nSubBands)/2))
         outFile.write('antennaMode={}\n'.format(self.antennaMode))
-        outFile.write("flaggingStrategy=HBAdefault\n")
+        outFile.write('flaggingStrategy=HBAdefault\n')
+        outFile.write('stationList={}\n'.format(self.arrayConfig))
         outFile.write(self.COMMON_STR+'\n')
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                        self.nSubBands))
@@ -357,6 +365,7 @@ class Imaging():
             outFile.write("flaggingStrategy=LBAdefault\n")
         else:
             outFile.write("flaggingStrategy=HBAdefault\n")
+        outFile.write('stationList={}\n'.format(self.arrayConfig))
         outFile.write(self.COMMON_STR+'\n')
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                       self.nSubBands))

@@ -54,6 +54,17 @@ class GuiWindow():
         self.avgT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
+        arrayConfigL = tk.Label(self.frame, text='Array configuration:')
+        arrayConfigL.grid(row=rowIdx, sticky='E')
+        self.arrayConfigStr = tk.StringVar()
+        arrayConfig = ['Super-terp only', 'Core stations', 'Dutch stations',\
+                       'International']
+        self.arrayConfigStr.set('International')
+        self.arrayConfigOption = tk.OptionMenu(self.frame, \
+                                      self.arrayConfigStr, *arrayConfig)
+        self.arrayConfigOption.grid(row=rowIdx, column=1, sticky='W')
+        
+        rowIdx += 1
         self.subbandL = tk.Label(self.frame, text='Sub band list:')
         self.subbandL.grid(row=rowIdx, sticky='E')
         self.freqModeStr = tk.StringVar()

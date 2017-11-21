@@ -14,116 +14,116 @@ class GuiWindow():
         self.root.geometry('580x440')
         self.root.option_add('*Font', 'helvetica 11')
                 
-        self.frame = tk.Frame(self.root, padx=5, pady=5)
-        self.frame.grid()
+        frame = tk.Frame(self.root, padx=5, pady=5)
+        frame.grid()
         
         rowIdx = 0        
-        self.projNameL = tk.Label(self.frame, text='Project Name:')
-        self.projNameL.grid(row=rowIdx, sticky='E')
-        self.projNameT = tk.Entry(self.frame, width=7)
+        projNameL = tk.Label(frame, text='Project Name:')
+        projNameL.grid(row=rowIdx, sticky='E')
+        self.projNameT = tk.Entry(frame, width=7)
         self.projNameT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        self.mainNameL = tk.Label(self.frame, text='Main folder name:')
-        self.mainNameL.grid(row=rowIdx, sticky='E')
-        self.mainNameT = tk.Entry(self.frame)
+        mainNameL = tk.Label(frame, text='Main folder name:')
+        mainNameL.grid(row=rowIdx, sticky='E')
+        self.mainNameT = tk.Entry(frame)
         self.mainNameT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        self.dateL = tk.Label(self.frame, text='Start date/time:')
-        self.dateL.grid(row=rowIdx, sticky='E')
-        self.dateT = tk.Entry(self.frame)
+        dateL = tk.Label(frame, text='Start date/time:')
+        dateL.grid(row=rowIdx, sticky='E')
+        self.dateT = tk.Entry(frame)
         self.dateT.insert(0, '2017-11-11-11-11-11')
         #self.dateT.bind('<Button-1>', self.clearEntry)
         self.dateT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        self.elevationL = tk.Label(self.frame, text='Min. calibrator '+\
+        elevationL = tk.Label(frame, text='Min. calibrator '+\
                                    'elevation (deg):')
-        self.elevationL.grid(row=rowIdx, sticky='E')
-        self.elevationT = tk.Entry(self.frame, width=5)
+        elevationL.grid(row=rowIdx, sticky='E')
+        self.elevationT = tk.Entry(frame, width=5)
         self.elevationT.insert(tk.END, '20')
         self.elevationT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        self.avgL = tk.Label(self.frame, text='Freq. and time. averaging:')
-        self.avgL.grid(row=rowIdx, sticky='E')
-        self.avgT = tk.Entry(self.frame, width=5)
+        avgL = tk.Label(frame, text='Freq. and time. averaging:')
+        avgL.grid(row=rowIdx, sticky='E')
+        self.avgT = tk.Entry(frame, width=5)
         self.avgT.insert(0, '4,1')
         #self.avgT.bind('<Button-1>', self.clearEntry)
         self.avgT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        arrayConfigL = tk.Label(self.frame, text='Array configuration:')
+        arrayConfigL = tk.Label(frame, text='Array configuration:')
         arrayConfigL.grid(row=rowIdx, sticky='E')
         self.arrayConfigStr = tk.StringVar()
         arrayConfig = ['Super-terp only', 'Core stations', 'Dutch stations',\
                        'International']
         self.arrayConfigStr.set('International')
-        self.arrayConfigOption = tk.OptionMenu(self.frame, \
+        self.arrayConfigOption = tk.OptionMenu(frame, \
                                       self.arrayConfigStr, *arrayConfig)
         self.arrayConfigOption.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        self.subbandL = tk.Label(self.frame, text='Sub band list:')
-        self.subbandL.grid(row=rowIdx, sticky='E')
+        subbandL = tk.Label(frame, text='Sub band list:')
+        subbandL.grid(row=rowIdx, sticky='E')
         self.freqModeStr = tk.StringVar()
         freqModes = ['10-90 MHz', '30-90 MHz', '110-190 MHz', '170-230 MHz',\
                      '210-290 MHz']
         self.freqModeStr.set('110-190 MHz')
-        self.freqModeOption = tk.OptionMenu(self.frame, self.freqModeStr, \
+        self.freqModeOption = tk.OptionMenu(frame, self.freqModeStr, \
                                             *freqModes, \
                                             command=self._changeAntennaMode)
         self.freqModeOption.grid(row=rowIdx, column=1, sticky='W')
         rowIdx += 1
         self.subbandOption = tk.IntVar()
-        self.subbandR1 = tk.Radiobutton(self.frame, text='Tier-1', \
+        self.subbandR1 = tk.Radiobutton(frame, text='Tier-1', \
                                         variable=self.subbandOption, value=1,\
                                         command=self._setSubbandText)
         self.subbandR1.grid(row=rowIdx, column=1, sticky='W')
-        self.subbandR2 = tk.Radiobutton(self.frame, text='user-defined', \
+        self.subbandR2 = tk.Radiobutton(frame, text='user-defined', \
                                         variable=self.subbandOption, value=2,\
                                         command=self._setSubbandText)
         self.subbandR2.grid(row=rowIdx, column=1, padx=80, sticky='W')
         rowIdx+= 1
-        self.subbandT = tk.Entry(self.frame, width=45)
+        self.subbandT = tk.Entry(frame, width=45)
         self.subbandT.configure(state='readonly')
         self.subbandT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        AntennaModeL = tk.Label(self.frame, text='Antenna mode:')
+        AntennaModeL = tk.Label(frame, text='Antenna mode:')
         AntennaModeL.grid(row=rowIdx, sticky='E')
         self.antennaModeStr = tk.StringVar()
         self.antennaModeStr.set('HBA Dual Inner')
         antMode = ['HBA Zero', 'HBA Zero Inner', 'HBA One', \
                    'HBA One Inner', 'HBA Dual', 'HBA Dual Inner', \
                    'HBA Joined', 'HBA Joined Inner']
-        self.antennaModeOption = tk.OptionMenu(self.frame, \
+        self.antennaModeOption = tk.OptionMenu(frame, \
                                                self.antennaModeStr, *antMode)
         self.antennaModeOption.grid(row=rowIdx, column=1, sticky='W')        
         
         rowIdx += 1
-        self.pointL = tk.Message(self.frame, text='Target pointing, '+\
+        pointL = tk.Message(frame, text='Target pointing, '+\
                                  'duration, demix (use multiple lines for '+\
                                  'multiple sources):', width=170)
-        self.pointL.grid(row=rowIdx, sticky='E')
-        self.pointT = tk.Text(self.frame, height=3, width=45)
+        pointL.grid(row=rowIdx, sticky='E')
+        self.pointT = tk.Text(frame, height=3, width=45)
         self.pointT.insert(tk.END, '<label>,0:0:0,0:0:0,<demix>')
         self.pointT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        self.durationL = tk.Label(self.frame, text='Target duration (hours):')
-        self.durationL.grid(row=rowIdx, sticky='E')
-        self.durationT = tk.Entry(self.frame, width=5)
+        durationL = tk.Label(frame, text='Target duration (hours):')
+        durationL.grid(row=rowIdx, sticky='E')
+        self.durationT = tk.Entry(frame, width=5)
         self.durationT.insert(0, '8')
         self.durationT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        self.submitB = tk.Button(self.frame, text='SUBMIT', justify=tk.CENTER,\
+        self.submitB = tk.Button(frame, text='SUBMIT', justify=tk.CENTER,\
                                  command=self.actionSubmit)
         self.submitB.grid(row=rowIdx, column=1, sticky='W', pady=10)
         
-        self.cancelB = tk.Button(self.frame, text='RESET', justify=tk.CENTER,\
+        self.cancelB = tk.Button(frame, text='RESET', justify=tk.CENTER,\
                                  command=self.resetForms)
         self.cancelB.grid(row=rowIdx, column=1, padx=100, sticky='W', pady=10)
 
@@ -204,7 +204,6 @@ class GuiWindow():
             optionMenu.add_command(label=mode, command=tk._setit(\
                                    self.antennaModeStr, mode))
         
-
     def clearEntry(self, event):
         event.widget.delete(0, 'end')
     

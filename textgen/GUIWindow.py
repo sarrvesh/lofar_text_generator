@@ -247,12 +247,19 @@ class GuiWindow():
         # Write the header section
         img.makeHeader(outFile)
         
+        startTime = img.startTime
         if img.rcumode == '10-90 MHz' or img.rcumode == '30-90 MHz':
-            print 'LBA'
+            try:
+                startTime = img.writeTarget(startTime, outFile)
+            except InvalidATeamError:
+                showErrorPopUp('Invalid A-team source.')
+                return None
+            except TooManyAteamError:
+                showErrorPopUp('Cannot demix more than 2 sources.')
+                return None
         else:
             # Write the first calibrator block
-            startTime = img.startTime
-            calName = img.findCalibrator(startTime)
+            calName = img.findHBACalibrator(startTime)
             if calName is None:
                 showErrorPopUp('Unable to find a suitable calibrator.')
                 return None
@@ -260,7 +267,7 @@ class GuiWindow():
             startTime = img.writeCalibrator(startTime, calName, outFile)
             # Write the target block
             try:
-                startTime = img.writeHBATarget(startTime, outFile)
+                startTime = img.writeTarget(startTime, outFile)
             except InvalidATeamError:
                 showErrorPopUp('Invalid A-team source.')
                 return None
@@ -268,7 +275,7 @@ class GuiWindow():
                 showErrorPopUp('Cannot demix more than 2 sources.')
                 return None
             # Write the second calibrator block
-            calName = img.findCalibrator(startTime)
+            calName = img.findHBACalibrator(startTime, calName)
             if calName is None:
                 showErrorPopUp('Unable to find a suitable calibrator.')
                 return None

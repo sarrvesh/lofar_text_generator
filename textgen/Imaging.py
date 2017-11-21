@@ -98,6 +98,8 @@ class Imaging():
                 "coherentDedisperseChannels=False\n"\
                 "flaggingStrategy=HBAdefault\n"\
                 "timeStep1=60\ntimeStep2=60"
+        # Set the list of valid calibrators
+        self.validCalibs = Imaging.VALID_CALIBS[:]
 
     def _getClockFreq(self):
         """
@@ -188,9 +190,10 @@ class Imaging():
                       ' {}, 8bits, 48MHz@144MHz, 1s, 64ch/sb\n\n'\
                       .format(self.rcumode))
     
-    def findCalibrator(self, time):
+    def findHBACalibrator(self, time, exclude=''):
         """
         For a given datetime, return the ``best'' flux density calibrator
+        for an HBA observation.
         """
         # Create the telescope object
         # The following values were taken from otool.py which is part of the
@@ -219,7 +222,9 @@ class Imaging():
         calibrator._epoch = '2000'
         calName = []
         distance = []
-        for item in Imaging.VALID_CALIBS:
+        if exclude in Imaging.VALID_CALIBS:
+            self.validCalibs.remove(exclude)
+        for item in self.validCalibs:
             myCoord = self._getCalPointing(item)
             calibrator._ra = myCoord.split(';')[0]
             calibrator._dec = myCoord.split(';')[1]
@@ -229,6 +234,15 @@ class Imaging():
                 calName.append(item)
                 distance.append(np.absolute(tempElevation-targetElevation))
         return calName[np.argmin(distance)]
+
+    def _findLBACalibrator(self, time):
+        """
+        For a given observation, return the ``best'' flux density calibrator
+        for an LBA observation. Note that, for LBA, the calibrator must be 
+        visibile for the entire duration of the target scan unlike
+        _findHBACalibrator.
+        """
+        calName = self._findHBACalibrator(time)
 
     def _getCalPointing(self, calName):
         """
@@ -266,11 +280,11 @@ class Imaging():
         outFile.write('\n')
 
         # Return the start time for the next block
-        return startTime + datetime.timedelta(minutes=11)
+        return startTime + datetime.timedelta(minutes=11)        
 
-    def writeHBATarget(self, startTime, outFile):
+    def writeTarget(self, startTime, outFile):
         """
-        Write the target section for HBA setup.
+        Write the target section.
         """
         outFile.write('BLOCK\n\n')
         if self.nBeams == 1:
@@ -288,11 +302,17 @@ class Imaging():
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                       self.nSubBands))
         outFile.write('targetBeams=\n')
-        # If we have more than one target beam, we need to set the 
-        # reference tile beam.
-        if self.nBeams > 1:
-            refCoord = self._getTileBeam()
-            outFile.write('{};REF;256;1;;;F;31200\n'\
+        if self.rcumode == '10-90 MHz' or self.rcumode == '30-90 MHz':
+            # Get the calibrator name for LBA
+            calName = self._findLBACalibrator()
+            print 'INFO: Using {} as the flux density calibrator'.\
+                   format(calName)
+        else:
+            # If we have more than one target beam, we need to set the 
+            # reference tile beam.
+            if self.nBeams > 1:
+                refCoord = self._getTileBeam()
+                outFile.write('{};REF;256;1;;;F;31200\n'\
                           .format(refCoord.to_string(style='hmsdms', sep=':')\
                           .replace(' ', ';')))
         # Write the user pointing
@@ -335,3 +355,6 @@ class Imaging():
             tempRA += coord.ra.degree
             tempDec += coord.dec.degree
         return SkyCoord(tempRA/self.nBeams, tempDec/self.nBeams, unit=u.deg)
+    
+    def __exit__(self, *err):
+        self.close()

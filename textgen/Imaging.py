@@ -4,6 +4,8 @@ import astropy.units as u
 import numpy as np
 from ephem import Observer, FixedBody, degrees, separation, Sun
 
+from errors import *
+
 class Imaging():
     """
     Imaging class defines all attributes and methods relevant for an 
@@ -83,6 +85,14 @@ class Imaging():
             raise InvalidDurationError
         if self.targetObsLength < 0.:
             raise InvalidDurationError
+        
+        # Check if the listed targets are above 30 degrees for the entire
+        # duration of the observation
+        for beamIdx in range(self.nBeams):
+            coord = '{};{}'.format(self.targetRA[beamIdx], \
+                                   self.targetDec[beamIdx])
+            if not self._isVisible(coord, self.startTime, self.targetObsLength):
+                raise SourceAtLowElevationError
         
         # String common to all imaging blocks
         self.COMMON_STR = "split_targets=F\ncalibration=none\n"\
@@ -243,16 +253,21 @@ class Imaging():
         """
         calName = self.findHBACalibrator(time)
         while True:
-            if self._isVisible(calName, time, self.targetObsLength):
+            coord = self._getCalPointing(calName)
+            if self._isVisible(coord, time, self.targetObsLength):
                 return calName
+            else:
+                print '{} is invisible'.format(calName)
+                calName = self.findHBACalibrator(time, exclude=calName)
         # If control reaches here, no suitable calibrator could be found
         raise NoGoodLBACalibratorError
 
-    def _isVisible(self, calName, startTime, duration):
+    def _isVisible(self, coord, startTime, duration):
         """
         For a given source and datetime, check if the source is visible
         during the specified duration. Not that the horizon here is 
-        the elevation specified by the user.
+        the elevation specified by the user. Note that the coordinate of 
+        source is specified as 'RA;Dec'
         """
         endTime = startTime + datetime.timedelta(hours=duration)
         time = startTime
@@ -265,9 +280,8 @@ class Imaging():
             
             target = FixedBody()
             target._epoch = '2000'
-            coordTarget = SkyCoord('{} {}'.format(\
-                              self.targetRA[0],
-                              self.targetDec[0]),
+            coordTarget = SkyCoord('{} {}'.format(coord.split(';')[0], \
+                              coord.split(';')[1]), \
                               unit=(u.hourangle, u.deg))
             target._ra = coordTarget.ra.radian
             target._dec = coordTarget.dec.radian

@@ -239,6 +239,10 @@ class GuiWindow():
             showErrorPopUp('Invalid subband specification. A cannot be '+\
                            'greater than B in "A..B".')
             return None
+        except SourceAtLowElevationError:
+            showErrorPopUp('One of the specified targets is below 30 '+\
+                           'degrees.')
+            return None
         #except: 
         #    showErrorPopUp('Encountered unknown error. Contact Sarrvesh '+\
         #                   'if this happens.')

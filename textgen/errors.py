@@ -49,3 +49,7 @@ class InvalidSubBandOrderError(Exception):
 class NoGoodLBACalibratorError(Exception):
     """Raised if no good calibrator could be found"""
     pass
+
+class SourceAtLowElevationError(Exception):
+    """Raised if the target is below a 30deg elevation."""
+    pass

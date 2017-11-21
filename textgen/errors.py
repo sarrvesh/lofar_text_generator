@@ -57,6 +57,10 @@ class SourceAtLowElevationError(Exception):
     pass
 
 def getErrorMessage():
+    """
+    Returns the appropriate error message for the most recently raised 
+    exception.
+    """
     return {
         'TooLongFolderNameError': 'Main folder name cannot be longer than 20 '\
                                   'characters.',

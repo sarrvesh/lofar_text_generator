@@ -214,13 +214,18 @@ class GuiWindow():
         This function coordinates all the background processing that happens
         after the SUBMIT button is clicked.
         """
-        outFile = open('output.txt', 'w')
+        
         try:
             img = Imaging(self)
         except:
             errString = getErrorMessage()
             showErrorPopUp(errString)
             return None
+
+        outFileName='{}_{}_{}.txt'.format(img.projectName, \
+                                  img.startTime.strftime('%Y%m%d'),\
+                                  img.targetLabel[0])
+        outFile = open(outFileName, 'w')
 
         # Write the header section
         img.makeHeader(outFile)

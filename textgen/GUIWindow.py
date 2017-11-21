@@ -257,6 +257,9 @@ class GuiWindow():
             except TooManyAteamError:
                 showErrorPopUp('Cannot demix more than 2 sources.')
                 return None
+            except NoGoodLBACalibratorError:
+                showErrorPopUp('Could not find a good calibrator.')
+                return None
         else:
             # Write the first calibrator block
             calName = img.findHBACalibrator(startTime)

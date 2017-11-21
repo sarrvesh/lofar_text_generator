@@ -45,3 +45,7 @@ class OutOfBoundsSubBandError(Exception):
 class InvalidSubBandOrderError(Exception):
     """Raised if B>A in A..B"""
     pass
+
+class NoGoodLBACalibratorError(Exception):
+    """Raised if no good calibrator could be found"""
+    pass

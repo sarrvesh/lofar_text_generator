@@ -57,6 +57,7 @@ class Imaging():
             raise InvalidAverageError
 
         # Get sub band list
+        self.antennaMode = gui.antennaModeStr.get()
         self.rcumode = gui.freqModeStr.get()
         self.clockFreq = self._getClockFreq()
         self.subbands = gui.subbandT.get()
@@ -88,15 +89,13 @@ class Imaging():
                 "processing=Preprocessing\n"\
                 "imagingPipeline=none\ncluster=CEP4\nrepeat=1\n"\
                 "nr_cores_per_task=2\npackageDescription="\
-                "HBA Dual Inner, {}, 8bits, ".format(self.rcumode) + \
-                "48MHz@144MHz, 1s, 64ch/sb\nantennaMode=HBA Dual Inner\n"\
-                "numberOfBitsPerSample=8\n"\
+                "{}, {}, 8bits, ".format(self.antennaMode, self.rcumode) + \
+                "1s, 64ch/sb\nnumberOfBitsPerSample=8\n"\
                 "integrationTime=1.0\nchannelsPerSubband=64\n"\
                 "stationList=all\ntbbPiggybackAllowed=T\n"\
                 "aartfaacPiggybackAllowed=T\ncorrelatedData=T\n"\
                 "coherentStokesData=F\nincoherentStokesData=F\nflysEye=F\n"\
                 "coherentDedisperseChannels=False\n"\
-                "flaggingStrategy=HBAdefault\n"\
                 "timeStep1=60\ntimeStep2=60"
         # Set the list of valid calibrators
         self.validCalibs = Imaging.VALID_CALIBS[:]
@@ -120,7 +119,7 @@ class Imaging():
                 try: 
                     s1 = int(item)
                 except:
-                    raise InvalidSubBandError
+                    raise InvalidSubbandError
                 if self.rcumode == '30-90 MHz':
                     if s1<154 or s1>461:
                         raise OutOfBoundsSubBandError
@@ -186,9 +185,9 @@ class Imaging():
         """
         outFile.write('projectName={}\n'.format(self.projectName))
         outFile.write('mainFolderName={}\n'.format(self.mainName))
-        outFile.write('mainFolderDescription=Preprocessing:HBA Dual Inner,'+\
-                      ' {}, 8bits, 48MHz@144MHz, 1s, 64ch/sb\n\n'\
-                      .format(self.rcumode))
+        outFile.write('mainFolderDescription=Preprocessing:{},'\
+                      ' {}, 8bits, 1s, 64ch/sb\n\n'\
+                      .format(self.antennaMode, self.rcumode))
     
     def findHBACalibrator(self, time, exclude=''):
         """
@@ -242,7 +241,45 @@ class Imaging():
         visibile for the entire duration of the target scan unlike
         _findHBACalibrator.
         """
-        calName = self._findHBACalibrator(time)
+        calName = self.findHBACalibrator(time)
+        while True:
+            if self._isVisible(calName, time, self.targetObsLength):
+                return calName
+        # If control reaches here, no suitable calibrator could be found
+        raise NoGoodLBACalibratorError
+
+    def _isVisible(self, calName, startTime, duration):
+        """
+        For a given source and datetime, check if the source is visible
+        during the specified duration. Not that the horizon here is 
+        the elevation specified by the user.
+        """
+        endTime = startTime + datetime.timedelta(hours=duration)
+        time = startTime
+        while time < endTime:
+            lofar = Observer()
+            lofar.lon = '6.869882'
+            lofar.lat = '52.915129'
+            lofar.elevation = 15.
+            lofar.date = time
+            
+            target = FixedBody()
+            target._epoch = '2000'
+            coordTarget = SkyCoord('{} {}'.format(\
+                              self.targetRA[0],
+                              self.targetDec[0]),
+                              unit=(u.hourangle, u.deg))
+            target._ra = coordTarget.ra.radian
+            target._dec = coordTarget.dec.radian
+            target.compute(lofar)
+            targetElevation = float(target.alt)*180./np.pi
+            
+            if targetElevation < self.elevation:
+                return False
+
+            time += datetime.timedelta(minutes=15)
+        # Turns out this source is above the horizon
+        return True
 
     def _getCalPointing(self, calName):
         """
@@ -260,7 +297,8 @@ class Imaging():
 
     def writeCalibrator(self, startTime, calibName, outFile):
         """
-        Write the calibrator section
+        Write the calibrator section. This is almost always used for HBA 
+        and never for LBA observations.
         """
         outFile.write('BLOCK\n\n')
         outFile.write('packageName={}\n'.format(calibName))
@@ -269,6 +307,8 @@ class Imaging():
         outFile.write('clock={}\n'.format(self.clockFreq))
         outFile.write('instrumentFilter={}\n'.format(self.rcumode))
         outFile.write('nr_tasks={}\n'.format(int(self.nSubBands)/2))
+        outFile.write('antennaMode={}\n'.format(self.antennaMode))
+        outFile.write("flaggingStrategy=HBAdefault\n")
         outFile.write(self.COMMON_STR+'\n')
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                        self.nSubBands))
@@ -298,15 +338,24 @@ class Imaging():
         outFile.write('clock={}\n'.format(self.clockFreq))
         outFile.write('instrumentFilter={}\n'.format(self.rcumode))
         outFile.write('nr_tasks={}\n'.format(int(self.nSubBands)/2))
+        outFile.write('antennaMode={}\n'.format(self.antennaMode))
+        if self.rcumode == '10-90 MHz' or self.rcumode == '30-90 MHz':
+            outFile.write("flaggingStrategy=LBAdefault\n")
+        else:
+            outFile.write("flaggingStrategy=HBAdefault\n")
         outFile.write(self.COMMON_STR+'\n')
         outFile.write('Global_Subbands={};{}\n'.format(self.subbands,\
                       self.nSubBands))
         outFile.write('targetBeams=\n')
         if self.rcumode == '10-90 MHz' or self.rcumode == '30-90 MHz':
             # Get the calibrator name for LBA
-            calName = self._findLBACalibrator()
+            calName = self._findLBACalibrator(startTime)
             print 'INFO: Using {} as the flux density calibrator'.\
                    format(calName)
+            outFile.write('{};{};;;;;T;1800\n'.format(\
+                      self._getCalPointing(calName), calName))
+            outFile.write('Demix={};64;10;;[CasA,CygA];F\n'.format(\
+                      self.avg.replace(',', ';')))
         else:
             # If we have more than one target beam, we need to set the 
             # reference tile beam.

@@ -262,9 +262,3 @@ class GuiWindow():
             startTime = img.writeCalibrator(startTime, calName, outFile)
             
         outFile.close()
-
-def showErrorPopUp(message):
-    """
-    Display an error pop-up message
-    """
-    tkMessageBox.showerror('Error', message)

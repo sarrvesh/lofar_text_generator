@@ -1,4 +1,5 @@
 import sys
+import tkMessageBox
 
 class InvalidATeamError(Exception):
     """Raised when invalid demix source is specified"""
@@ -52,10 +53,6 @@ class NoGoodLBACalibratorError(Exception):
     """Raised if no good calibrator could be found"""
     pass
 
-class SourceAtLowElevationError(Exception):
-    """Raised if the target is below a 30deg elevation."""
-    pass
-
 def getErrorMessage():
     """
     Returns the appropriate error message for the most recently raised 
@@ -76,9 +73,19 @@ def getErrorMessage():
                                    'the selected filter.',
         'InvalidSubBandOrderError': 'Invalid subband specification. X cannot '\
                                     'be greater than Y in "X..Y".',
-        'SourceAtLowElevationError': 'One of the specified targets is below '\
-                                     '30 degrees',
         'InvalidATeamError': 'Invalid A-team source.',
         'TooManyAteamError': 'Cannot demix more than 2 sources.',
         'NoGoodLBACalibratorError': 'Could not find a good calibrator.',
     }[sys.exc_type.__name__]
+
+def showErrorPopUp(message):
+    """
+    Display an error pop-up message
+    """
+    tkMessageBox.showerror('Error', message)
+
+def showWarningPopUp(message):
+    """
+    Display a warning pop-up message
+    """
+    tkMessageBox.showinfo('Warning', message)

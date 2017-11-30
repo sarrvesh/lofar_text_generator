@@ -5,6 +5,7 @@ import numpy as np
 from ephem import Observer, FixedBody, degrees, separation, Sun
 
 from errors import *
+from GUIWindow import *
 
 class Imaging():
     """
@@ -99,7 +100,8 @@ class Imaging():
             coord = '{};{}'.format(self.targetRA[beamIdx], \
                                    self.targetDec[beamIdx])
             if not self._isVisible(coord, self.startTime, self.targetObsLength):
-                raise SourceAtLowElevationError
+                showWarningPopUp('One of the specified targets is below 30 '+\
+                               'degrees. Will generate text file anyway.')
         
         # String common to all imaging blocks
         self.COMMON_STR = "split_targets=F\ncalibration=none\n"\

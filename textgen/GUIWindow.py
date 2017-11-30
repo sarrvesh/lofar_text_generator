@@ -38,11 +38,11 @@ class GuiWindow():
         self.dateT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
-        elevationL = tk.Label(frame, text='Min. calibrator '+\
+        elevationL = tk.Label(frame, text='Min. '+\
                                    'elevation (deg):')
         elevationL.grid(row=rowIdx, sticky='E')
         self.elevationT = tk.Entry(frame, width=5)
-        self.elevationT.insert(tk.END, '20')
+        self.elevationT.insert(tk.END, '30')
         self.elevationT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1

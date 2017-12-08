@@ -191,6 +191,8 @@ class Imaging():
         targetDec = []
         demixLabel = []
         for line in strFromTextBox.splitlines():
+            # Remove spaces if there are any
+            line = line.replace(' ', '')
             splitStr = line.split(',')
             targetLabel.append( splitStr[0] )
             targetRA.append( splitStr[1] )

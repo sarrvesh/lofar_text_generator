@@ -234,6 +234,7 @@ class GuiWindow():
         
         startTime = img.startTime
         if img.rcumode == '10-90 MHz' or img.rcumode == '30-90 MHz':
+            # In the case LBA
             try:
                 startTime = img.writeTarget(startTime, outFile)
             except:
@@ -241,6 +242,7 @@ class GuiWindow():
                 showErrorPopUp(errString)
                 return None
         else:
+            # In the case of HBA
             # Write the first calibrator block
             calName = img.findHBACalibrator(startTime)
             if calName is None:

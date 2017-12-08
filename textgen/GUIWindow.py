@@ -1,5 +1,7 @@
 import Tkinter as tk
 import tkMessageBox 
+import subprocess
+import os
 
 from errors import *
 from Imaging import *
@@ -262,3 +264,24 @@ class GuiWindow():
             startTime = img.writeCalibrator(startTime, calName, outFile)
             
         outFile.close()
+        
+        # If xmlgen.py exists, convert the text file to xml
+        FNULL = open(os.devnull, 'w')
+        try:
+            subprocess.call(['./xmlgen.py', '-i', outFileName], stdout=FNULL, \
+                            stderr=subprocess.STDOUT)
+            print 'INFO: Found xmlgen.py. Generating XML file.'
+        except OSError:
+            print 'INFO: Could not find xmlgen.py in the current working '+\
+                  'directory'
+            try:
+                subprocess.call(['xmlgen.py', '-i', outFileName], \
+                           stdout=FNULL, stderr=subprocess.STDOUT)
+                print 'INFO: Found xmlgen.py. Generating XML file.'
+            except OSError:
+                print 'INFO: Could not find xmlgen.py in PATH'
+                print 'INFO: Only text output will be generated.'
+                print 'INFO: Run xmlgen.py manually to generate the xml file.'
+        FNULL.close()
+        
+        print ''

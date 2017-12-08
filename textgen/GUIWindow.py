@@ -13,10 +13,10 @@ class GuiWindow():
         """
         self.root = tk.Tk()
         self.root.title('LOFAR Imaging Text Generator')
-        self.root.geometry('580x470')
+        #self.root.geometry('580x470')
         self.root.option_add('*Font', 'helvetica 11')
                 
-        frame = tk.Frame(self.root, padx=5, pady=5)
+        frame = tk.Frame(self.root, padx=10, pady=5)
         frame.grid()
         
         rowIdx = 0        

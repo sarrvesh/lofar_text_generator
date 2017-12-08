@@ -2,7 +2,7 @@ import datetime
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 import numpy as np
-from ephem import Observer, FixedBody, degrees, separation, Sun
+from ephem import Observer, FixedBody, degrees, Sun
 
 from errors import *
 from GUIWindow import *
@@ -100,8 +100,14 @@ class Imaging():
             coord = '{};{}'.format(self.targetRA[beamIdx], \
                                    self.targetDec[beamIdx])
             if not self._isVisible(coord, self.startTime, self.targetObsLength):
-                showWarningPopUp('One of the specified targets is below 30 '+\
-                               'degrees. Will generate text file anyway.')
+                showWarningPopUp('One of the specified targets is below user '+\
+                   'specified elevation [{} degrees].'.format(self.elevation) +\
+                   ' Will generate text file anyway.')
+            # Check the distance between the Sun and the target beams
+            if self._findDistanceToSun(coord)< 30.:
+                showWarningPopUp('Sun is within 30 degrees of source {}.'.\
+                                 format(self.targetLabel[beamIdx]) +\
+                                 'Will generate text file anyway.')
         
         # String common to all imaging blocks
         self.COMMON_STR = "split_targets=F\ncalibration=none\n"\
@@ -118,6 +124,22 @@ class Imaging():
                 "timeStep1=60\ntimeStep2=60"
         # Set the list of valid calibrators
         self.validCalibs = Imaging.VALID_CALIBS[:]
+
+    def _findDistanceToSun(self, coord):
+        """
+        Print the distance between the specified pointing center and the Sun.
+        """        
+        # Find the coordinates of the Sun at the start of the observing run
+        sun = Sun()
+        sun.compute(self.startTime)
+        coordSun = SkyCoord('{} {}'.format(sun.ra, sun.dec), 
+                            unit=(u.hourangle, u.deg))
+        coordTarget = SkyCoord('{} {}'.format(coord.split(';')[0], \
+                              coord.split(';')[1]), \
+                              unit=(u.hourangle, u.deg))
+
+        # Find the separation between the Sun and the target
+        return coordSun.separation(coordTarget).deg
 
     def _getClockFreq(self):
         """

@@ -248,7 +248,9 @@ class GuiWindow():
             if calName is None:
                 showErrorPopUp('Unable to find a suitable calibrator.')
                 return None
-            print 'INFO: Using {} as flux density calibrator'.format(calName)
+            print GREEN_COLOR +\
+                  'INFO: Using {} as flux density calibrator'.format(calName) +\
+                  NO_COLOR
             startTime = img.writeCalibrator(startTime, calName, outFile)
             # Write the target block
             try:
@@ -262,7 +264,9 @@ class GuiWindow():
             if calName is None:
                 showErrorPopUp('Unable to find a suitable calibrator.')
                 return None
-            print 'INFO: Using {} as flux density calibrator'.format(calName)
+            print GREEN_COLOR +\
+                  'INFO: Using {} as flux density calibrator'.format(calName) +\
+                  NO_COLOR
             startTime = img.writeCalibrator(startTime, calName, outFile)
             
         outFile.close()
@@ -272,18 +276,21 @@ class GuiWindow():
         try:
             subprocess.call(['./xmlgen.py', '-i', outFileName], stdout=FNULL, \
                             stderr=subprocess.STDOUT)
-            print 'INFO: Found xmlgen.py. Generating XML file.'
+            print GREEN_COLOR + 'INFO: Found xmlgen.py. Generating XML file.' +\
+                  NO_COLOR
         except OSError:
-            print 'INFO: Could not find xmlgen.py in the current working '+\
-                  'directory'
+            print RED_COLOR + 'INFO: Could not find xmlgen.py in the ' +\
+                  'current working directory.' + NO_COLOR
             try:
                 subprocess.call(['xmlgen.py', '-i', outFileName], \
                            stdout=FNULL, stderr=subprocess.STDOUT)
-                print 'INFO: Found xmlgen.py. Generating XML file.'
+                print GREEN_COLOR + \
+                      'INFO: Found xmlgen.py. Generating XML file.' + NO_COLOR
             except OSError:
-                print 'INFO: Could not find xmlgen.py in PATH'
+                print RED_COLOR + 'INFO: Could not find xmlgen.py in PATH'
                 print 'INFO: Only text output will be generated.'
-                print 'INFO: Run xmlgen.py manually to generate the xml file.'
+                print 'INFO: Run xmlgen.py manually to generate the xml file.'+\
+                      NO_COLOR
         FNULL.close()
         
         print ''

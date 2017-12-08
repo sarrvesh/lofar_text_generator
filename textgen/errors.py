@@ -1,6 +1,11 @@
 import sys
 import tkMessageBox
 
+# Colorscheme for printing information and errors
+RED_COLOR    = '\033[91m'
+NO_COLOR     = '\033[0m'
+GREEN_COLOR  = '\033[92m'
+
 class InvalidATeamError(Exception):
     """Raised when invalid demix source is specified"""
     pass

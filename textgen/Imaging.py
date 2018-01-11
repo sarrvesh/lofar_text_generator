@@ -410,9 +410,11 @@ class Imaging():
             # reference tile beam.
             if self.nBeams > 1:
                 refCoord = self._getTileBeam()
-                outFile.write('{};REF;256;1;;;F;31200\n'\
+                sapName1 = self.targetLabel[0].split('-')[0].split('+')[0]
+                sapName2 = self.targetLabel[1].split('-')[0].split('+')[0]
+                outFile.write('{};{}{}REF;256;1;;;F;31200\n'\
                           .format(refCoord.to_string(style='hmsdms', sep=':')\
-                          .replace(' ', ';')))
+                          .replace(' ', ';'), sapName1, sapName2))
         # Write the user pointing
         for index in range(self.nBeams):
             if self.demixLabel[index] == [] or self.demixLabel[index] == ['']:

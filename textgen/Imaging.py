@@ -57,7 +57,7 @@ class Imaging():
            float(self.avg.split(',')[0])
            float(self.avg.split(',')[1])
         except ValueError:
-            raise InvalidAverageError
+            raise InvalidAverageError           
             
         # Get the array configuration
         arrayStr = gui.arrayConfigStr.get()
@@ -419,6 +419,7 @@ class Imaging():
         for index in range(self.nBeams):
             if self.demixLabel[index] == [] or self.demixLabel[index] == ['']:
                 demixStr = ''
+                demixInterval = '64;10'
             else:
                 # Check if the specified demix sources are valid
                 if len(self.demixLabel[index]) > 2:
@@ -426,13 +427,21 @@ class Imaging():
                 for item in self.demixLabel[index]:
                     if item not in Imaging.VALID_ATEAMS:
                         raise InvalidATeamError
+                # The time and frequency demixing intervals should be an integer 
+                # multiple of the time and freq averaging values specified by 
+                # the user
+                demixInterval = '64;10'
+                if 64%int(self.avg.split(',')[0]) != 0:
+                    raise InvalidFreqAvgError
+                if 10%int(self.avg.split(',')[1]) != 0:
+                    demixInterval = '64;12'
                 demixStr = '{}'.format(self.demixLabel[index])
                 demixStr = demixStr.replace("'", '').replace(' ','')
             outFile.write('{};{};{};;;;;T;31200\n'.format(\
                           self.targetRA[index], self.targetDec[index],\
                           self.targetLabel[index],))
-            outFile.write('Demix={};64;10;;{};F\n'.format(\
-                          self.avg.replace(',', ';'), demixStr))
+            outFile.write('Demix={};{};;{};F\n'.format(\
+                          self.avg.replace(',', ';'), demixInterval, demixStr))
         outFile.write('\n')
         # Return the start time for the next block
         return startTime + datetime.timedelta(hours=self.targetObsLength, \

@@ -10,6 +10,11 @@ class InvalidATeamError(Exception):
     """Raised when invalid demix source is specified"""
     pass
 
+class InvalidFreqAvgError(Exception):
+    """Raised when 64 is not an integer multiple of the specified frequency
+       averaging value."""
+    pass
+
 class TooManyAteamError(Exception):
     """Raised when more than 2 A-team sources are specified"""
     pass
@@ -66,6 +71,7 @@ def getErrorMessage():
     return {
         'TooLongFolderNameError': 'Main folder name cannot be longer than 20 '\
                                   'characters.',
+        'InvalidFreqAvgError': 'Specified frequency averaging is invalid',
         'InvalidMainFolderNameError': 'Invalid main folder name.',
         'InvalidDateTimeError': 'Entered date/time is invalid.',
         'InvalidElevationError': 'Specified elevation is invalid.',

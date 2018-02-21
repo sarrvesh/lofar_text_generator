@@ -14,7 +14,8 @@ class Imaging():
     """
 
     # Have a list of valid calibrators
-    VALID_CALIBS = ['3C295', '3C196', '3C48', '3C147', '3C380']
+    VALID_CALIBS = ['3C295', '3C196', '3C48', '3C147']
+    #VALID_CALIBS = ['3C295', '3C196', '3C48', '3C147', '3C380']
     
     # Have a list of valid A-team sources
     VALID_ATEAMS = ['CasA', 'CygA', 'TauA', 'VirA']
@@ -263,9 +264,7 @@ class Imaging():
         calibrator = FixedBody()
         calibrator._epoch = '2000'
         calName = []
-        distance = []
-        if exclude in Imaging.VALID_CALIBS:
-            self.validCalibs.remove(exclude)
+        calibElevation = []
         for item in self.validCalibs:
             myCoord = self._getCalPointing(item)
             calibrator._ra = myCoord.split(';')[0]
@@ -274,8 +273,8 @@ class Imaging():
             tempElevation = float(calibrator.alt)*180./np.pi
             if tempElevation > self.elevation:
                 calName.append(item)
-                distance.append(np.absolute(tempElevation-targetElevation))
-        return calName[np.argmin(distance)]
+                calibElevation.append(tempElevation)
+        return calName[np.argmax(calibElevation)]
 
     def _findLBACalibrator(self, time):
         """

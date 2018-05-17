@@ -352,7 +352,7 @@ class Imaging():
         outFile.write('targetDuration_s=600\n')
         outFile.write('clock={}\n'.format(self.clockFreq))
         outFile.write('instrumentFilter={}\n'.format(self.rcumode))
-        outFile.write('nr_tasks={}\n'.format(int(self.nSubBands)/2))
+        outFile.write('nr_tasks={}\n'.format(1+int(self.nSubBands)/2))
         outFile.write('antennaMode={}\n'.format(self.antennaMode))
         outFile.write('flaggingStrategy=HBAdefault\n')
         outFile.write('stationList={}\n'.format(self.arrayConfig))

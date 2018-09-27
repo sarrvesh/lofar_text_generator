@@ -14,7 +14,7 @@ class Imaging():
     """
 
     # Have a list of valid calibrators
-    VALID_CALIBS = ['3C295', '3C196', '3C48', '3C147']
+    VALID_CALIBS = ['3C295', '3C196', '3C48']
     #VALID_CALIBS = ['3C295', '3C196', '3C48', '3C147', '3C380']
     
     # Have a list of valid A-team sources
@@ -233,7 +233,7 @@ class Imaging():
                       ' {}, 8bits, 1s, 64ch/sb\n\n'\
                       .format(self.antennaMode, self.rcumode))
     
-    def findHBACalibrator(self, time, exclude=''):
+    def findHBACalibrator(self, time, exclude=None):
         """
         For a given datetime, return the ``best'' flux density calibrator
         for an HBA observation.
@@ -265,6 +265,8 @@ class Imaging():
         calibrator._epoch = '2000'
         calName = []
         calibElevation = []
+        if exclude is not None:
+            self.validCalibs.remove(exclude)
         for item in self.validCalibs:
             myCoord = self._getCalPointing(item)
             calibrator._ra = myCoord.split(';')[0]
@@ -291,6 +293,7 @@ class Imaging():
             else:
                 print '{} is invisible'.format(calName)
                 calName = self.findHBACalibrator(time, exclude=calName)
+                print 'Will try', calName, 'next'
         # If control reaches here, no suitable calibrator could be found
         raise NoGoodLBACalibratorError
 

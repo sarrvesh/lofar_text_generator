@@ -74,6 +74,12 @@ class Imaging():
         self.subbands = gui.subbandT.get()
         self._validateSubBands()
         self.nSubBands = self._countSubBands()
+        
+        # Check if dysco has to be enabled or disabled
+        if gui.dyscoModeStr.get() == 'Enabled':
+           storagemanager = "dysco"
+        else:
+           storagemanager = " "
                 
         # Get the pointing string
         try:
@@ -122,6 +128,7 @@ class Imaging():
                 "aartfaacPiggybackAllowed=T\ncorrelatedData=T\n"\
                 "coherentStokesData=F\nincoherentStokesData=F\nflysEye=F\n"\
                 "coherentDedisperseChannels=False\n"\
+                "storagemanager={}\n".format(storagemanager) + \
                 "timeStep1=60\ntimeStep2=60"
         # Set the list of valid calibrators
         self.validCalibs = Imaging.VALID_CALIBS[:]

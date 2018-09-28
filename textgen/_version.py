@@ -4,12 +4,14 @@ This module stores the version number and the changelog
 """
 
 # Version number
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 # Changelog
 def changelog():
     """
     Changelog:
+    0.1.4   2018/09/28   Enabled dysco compression for HBA observations. 
+                         Added new version of xmlgen.py
     0.1.3   2017/12/08   Use proper labels for reference beams.
                          Demixing interval is forced to be an integer multiple 
                          of the averaging parameters.

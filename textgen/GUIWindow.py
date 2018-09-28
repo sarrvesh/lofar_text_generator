@@ -121,6 +121,16 @@ class GuiWindow():
         self.durationT.grid(row=rowIdx, column=1, sticky='W')
         
         rowIdx += 1
+        compressL = tk.Label(frame, text='Dysco compression:')
+        compressL.grid(row=rowIdx, sticky='E')
+        self.dyscoModeStr = tk.StringVar()
+        self.dyscoModeStr.set('Enabled')
+        dyscoMode = ['Enabled', 'Disabled']
+        self.dyscoModeOption = tk.OptionMenu(frame, self.dyscoModeStr, \
+                                             *dyscoMode)
+        self.dyscoModeOption.grid(row=rowIdx, column=1, sticky='W')
+        
+        rowIdx += 1
         self.submitB = tk.Button(frame, text='SUBMIT', justify=tk.CENTER,\
                                  command=self.actionSubmit)
         self.submitB.grid(row=rowIdx, column=1, sticky='W', pady=10)
@@ -133,7 +143,9 @@ class GuiWindow():
         """
         Set the antenna mode dropdown button based on the chosen RCU mode. 
         Note that at the same time, we should also disable the Tier-1 
-        option button
+        option button.
+        Dysco compression should also be set here. Dysco compression is 
+        enabled when HBA RCU modes are chosen.
         """
         optionMenu = self.antennaModeOption.children["menu"]
         optionMenu.delete(0, "end")
@@ -146,6 +158,7 @@ class GuiWindow():
                        'HBA Joined', 'HBA Joined Inner']
             self.antennaModeStr.set('HBA Dual Inner')
             self.subbandR1.configure(state='normal')
+            self.dyscoModeStr.set('Enabled')
         else:
             # Display all LBA modes
             antMode = ['LBA Inner', 'LBA Outer', 'LBA Sparse Even', \
@@ -153,6 +166,7 @@ class GuiWindow():
             self.antennaModeStr.set('LBA Outer')
             self.subbandR1.configure(state='disabled')
             self.subbandOption.set(2); self._setSubbandText()
+            self.dyscoModeStr.set('Disabled')
         for mode in antMode:
             optionMenu.add_command(label=mode, command=tk._setit(\
                                    self.antennaModeStr, mode))
@@ -204,6 +218,7 @@ class GuiWindow():
                    'HBA One Inner', 'HBA Dual', 'HBA Dual Inner', \
                    'HBA Joined', 'HBA Joined Inner']
         self.antennaModeStr.set('HBA Dual Inner')
+        self.dyscoModeStr.set('Enabled')
         for mode in antMode:
             optionMenu.add_command(label=mode, command=tk._setit(\
                                    self.antennaModeStr, mode))

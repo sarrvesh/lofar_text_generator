@@ -280,9 +280,17 @@ class Imaging():
             calibrator._dec = myCoord.split(';')[1]
             calibrator.compute(lofar)
             tempElevation = float(calibrator.alt)*180./np.pi
-            if tempElevation > self.elevation:
-                calName.append(item)
-                calibElevation.append(tempElevation)
+            #print 'Temp is', tempElevation
+            #if tempElevation > self.elevation:
+            #    calName.append(item)
+            #    calibElevation.append(tempElevation)
+            #print calibElevation
+            calName.append(item)
+            calibElevation.append(tempElevation)
+        if calibElevation[np.argmax(calibElevation)] < self.elevation:
+           showWarningPopUp('One of the chosen calibrator is below user '+\
+               'specified elevation [{} degrees].'.format(self.elevation) +\
+               ' Will generate text file anyway.')
         return calName[np.argmax(calibElevation)]
 
     def _findLBACalibrator(self, time):

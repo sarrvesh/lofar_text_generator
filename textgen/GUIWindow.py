@@ -105,8 +105,8 @@ class GuiWindow():
         self.antennaModeOption.grid(row=rowIdx, column=1, sticky='W')        
         
         rowIdx += 1
-        pointL = tk.Message(frame, text='Target pointing, '+\
-                                 'duration, demix (use multiple lines for '+\
+        pointL = tk.Message(frame, text='Target pointing details '+\
+                                 '(use multiple lines for '+\
                                  'multiple sources):', width=170)
         pointL.grid(row=rowIdx, sticky='E')
         self.pointT = tk.Text(frame, height=3, width=45)

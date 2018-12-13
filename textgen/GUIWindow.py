@@ -71,7 +71,7 @@ class GuiWindow():
         subbandL.grid(row=rowIdx, sticky='E')
         self.freqModeStr = tk.StringVar()
         freqModes = ['10-90 MHz', '30-90 MHz', '110-190 MHz', '170-230 MHz',\
-                     '210-290 MHz']
+                     '210-250 MHz']
         self.freqModeStr.set('110-190 MHz')
         self.freqModeOption = tk.OptionMenu(frame, self.freqModeStr, \
                                             *freqModes, \
@@ -150,7 +150,7 @@ class GuiWindow():
         optionMenu = self.antennaModeOption.children["menu"]
         optionMenu.delete(0, "end")
         option = self.freqModeStr.get()
-        if option == '210-290 MHz' or option == '170-230 MHz' or \
+        if option == '210-250 MHz' or option == '170-230 MHz' or \
            option == '110-190 MHz':
             # Display all HBA modes
             antMode = ['HBA Zero', 'HBA Zero Inner', 'HBA One', \

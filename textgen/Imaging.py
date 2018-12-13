@@ -480,7 +480,21 @@ class Imaging():
                              unit=(u.hourangle, u.deg))
             tempRA += coord.ra.degree
             tempDec += coord.dec.degree
-        return SkyCoord(tempRA/self.nBeams, tempDec/self.nBeams, unit=u.deg)
+        _tileBeam = SkyCoord(tempRA/self.nBeams, tempDec/self.nBeams, unit=u.deg)
+        if _tileBeam.separation(coord).deg > 7:
+           # Specified pointings stradle the 0 degree line
+           # Find the midpoint after shifting the coordinates
+           # FIXME
+           tempRA = 0.
+           tempDec=0.
+           for index in range(self.nBeams):
+              coord = SkyCoord('{} {}'.format( \
+                             self.targetRA[index], self.targetDec[index]), 
+                             unit=(u.hourangle, u.deg))
+              tempRA += ((coord.ra.degree + 10.)%360.)
+              tempDec += coord.dec.degree
+           _tileBeam = SkyCoord(tempRA/self.nBeams - 10., tempDec/self.nBeams, unit=u.deg)
+        return _tileBeam
     
     def __exit__(self, *err):
         self.close()

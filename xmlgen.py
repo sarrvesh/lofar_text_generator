@@ -26,7 +26,7 @@
 # Last change by : $Author: renting $
 # Change date	   : $Date: 2016-05-18 11:47:57 +0200 (wo, 18 mei 2016) $
 
-VERSION = "3.1.0"
+VERSION = "4.0.2"
 
 import sys, getopt, time
 from xml.sax.saxutils import escape as XMLescape
@@ -49,7 +49,7 @@ WHICH_CS = ['IQUV', 'I', 'XXYY']
 WEIGHTING_SCHEMES = ['uniform', 'superuniform', 'natural', 'briggs', 'briggsabs', 'radial']
 IMAGING_PIPELINE_TYPES = ['MSSS', 'standard', 'none']
 # MODES = ['Calobs','Calbeam','MultiObs']
-PROCESSING = ['Preprocessing', 'Calibration', 'Pulsar', 'Imaging', 'LongBaseline', 'none']
+PROCESSING = ['Preprocessing', 'Calibration', 'Pulsar', 'Imaging', 'LongBaseline', 'Prefactor', 'none']
 CALIBRATION_MODE = ['internal', 'external', 'none']
 ALL_STATIONS = 'CS001,CS002,CS003,CS004,CS005,CS006,CS007,CS011,CS013,CS017,CS021,CS024,CS026,CS028,CS030,CS031,CS032,CS101,CS103,CS201,CS301,CS302,CS401,CS501,RS106,RS205,RS208,RS210,RS305,RS306,RS307,RS310,RS406,RS407,RS409,RS503,RS508,RS509,DE601,DE602,DE603,DE604,DE605,FR606,SE607,UK608,DE609,PL610,PL611,PL612,IE613'
 CORE_STATIONS = 'CS001,CS002,CS003,CS004,CS005,CS006,CS007,CS011,CS013,CS017,CS021,CS024,CS026,CS028,CS030,CS031,CS032,CS101,CS103,CS201,CS301,CS302,CS401,CS501'
@@ -88,15 +88,15 @@ def merge_dicts(*dict_args):
 
 
 def printMessage(message):
-    print(GREEN_COLOR + message + NO_COLOR)
+    print((GREEN_COLOR + message + NO_COLOR))
 
 
 def printInfo(message):
-    print(CYAN_COLOR + 'INFO: ' + message + NO_COLOR)
+    print((CYAN_COLOR + 'INFO: ' + message + NO_COLOR))
 
 
 def printWarning(message):
-    print(YELLOW_COLOR + 'WARNING: ' + message + NO_COLOR)
+    print((YELLOW_COLOR + 'WARNING: ' + message + NO_COLOR))
 
 
 def dms2deg(dms_str):
@@ -215,7 +215,7 @@ def parse_subband_list(parset_subband_list, nr_subbands):
             else:
                 subbands.append(int(sub_list[0]))
         elif len(sub_list) == 2:
-            subbands += range(int(sub_list[0]), int(sub_list[1]) + 1)
+            subbands += list(range(int(sub_list[0]), int(sub_list[1]) + 1))
         else:
             raise GenException(str(word) + ' is not a valid sub_range in a subband list') # FIXME: word might be undefined?
     doubles = set([x for x in subbands if subbands.count(x) > 1])
@@ -332,7 +332,7 @@ def writeXMLObs(ofile, name, descr, topo, predecessor_topo, attrname, projname, 
                 cordata, cohdata, incohdata, antenna, clock, instrfilt, interval, channels,
                 cohdedisp, flysEye, subsperfileCS, colapseCS, downstepsCS, whichCS, subsperfileIS, colapseIS,
                 downstepsIS, whichIS, stations, start, stop, duration, bitspersample, status):
-    print >> ofile, r"""          <item index="0">
+    print(r"""          <item index="0">
                 <lofar:observation>
                   <name>%s</name>
                   <description>%s</description>
@@ -391,12 +391,12 @@ def writeXMLObs(ofile, name, descr, topo, predecessor_topo, attrname, projname, 
         writeBoolean(cordata), writeBoolean(cohdata), writeBoolean(incohdata), antenna, clock, instrfilt, interval,
         channels,
         writeBoolean(cohdedisp), writeBoolean(flysEye), subsperfileCS, colapseCS, downstepsCS, whichCS,
-        subsperfileIS, colapseIS, downstepsIS, whichIS, stations, start, stop, duration, bitspersample)
+        subsperfileIS, colapseIS, downstepsIS, whichIS, stations, start, stop, duration, bitspersample), file=ofile)
 
 
 def writeXMLBeam(ofile, name, description, topo, beamtype, target, ra, dec, subbands, flyseye, tabrings, tabringsize,
                  tablist, dataproducts, status):
-    print >> ofile, r"""<item index="0">
+    print(r"""<item index="0">
                       <lofar:measurement xsi:type="lofar:BFMeasurementType">
                         <name>%s</name>
                         <description>%s</description>
@@ -431,13 +431,13 @@ def writeXMLBeam(ofile, name, description, topo, beamtype, target, ra, dec, subb
                       </lofar:measurement>
                     </item>""" % (
     name, description, topo, status, beamtype, target, ra, dec, subbands, writeBoolean(flyseye),
-    tabrings, tabringsize, tablist, dataproducts)
+    tabrings, tabringsize, tablist, dataproducts), file=ofile)
 
 
 def writeXMLObsEnd(ofile):
-    print >> ofile, r"""</children>
+    print(r"""</children>
                 </lofar:observation>
-                </item>"""
+                </item>""", file=ofile)
 
 
 def writeTABXML(TAB):
@@ -468,11 +468,11 @@ def writeMiscParameters(ofile, miscParameters):
     """
     if miscParameters is not None and len(miscParameters) > 0:
         j = json.dumps(miscParameters)
-        print >> ofile, r"""<misc>%s</misc>""" % j
+        print(r"""<misc>%s</misc>""" % j, file=ofile)
 
 
 def writeBBSParameters(ofile, bbsParameters):
-    print >> ofile, r"""            <bbsParameters>
+    print(r"""            <bbsParameters>
               <baselines>%s</baselines>
               <correlations>%s</correlations>
               <beamModelEnable>%s</beamModelEnable>
@@ -482,12 +482,12 @@ def writeBBSParameters(ofile, bbsParameters):
               <strategyTimeRange>%s</strategyTimeRange>
             </bbsParameters>""" % (
     bbsParameters[0], bbsParameters[1], writeBoolean(bbsParameters[2]), bbsParameters[3], bbsParameters[4],
-    bbsParameters[5], bbsParameters[6])
+    bbsParameters[5], bbsParameters[6]), file=ofile)
     ##TODO % {"baselines":, "correlations":, writeBoolean("beamenable":), "solveparms":, "solveuvrange":, "strategybaselines":, "strategytimerange":}
 
 
 def writeDemixParameters(ofile, demixParameters):
-    print >> ofile, r"""                  <demixingParameters>
+    print(r"""                  <demixingParameters>
                     <averagingFreqStep>%s</averagingFreqStep>
                     <averagingTimeStep>%s</averagingTimeStep>
                     <demixFreqStep>%s</demixFreqStep>
@@ -498,16 +498,17 @@ def writeDemixParameters(ofile, demixParameters):
                   </demixingParameters>""" % (
     demixParameters[0], demixParameters[1], demixParameters[2], demixParameters[3], demixParameters[4],
     demixParameters[5],
-    writeBoolean(demixParameters[6]))  ##TODO writeBoolean() Might be reduntant? Should do the conversion earlier
+    writeBoolean(demixParameters[6])), file=ofile)  ##TODO writeBoolean() Might be reduntant? Should do the conversion earlier
     ##TODO % {"averagingFreqStep":, "averagingTimeStep":, "demixFreqStep":, "demixTimeStep":, writeBoolean("demixAlways":), writeBoolean("demixIfNeeded":), writeBoolean("ignoreTarget":)}
 
 
 def writeXMLTargetPipeline(ofile, topo, pred_topo, name, descr, defaulttemplate, flagging, duration, demixParameters,
                            bbsParameters, uvintopo, uvinname, instrintopo, instrinname, uvoutname, uvouttopo,
+                           instroutname, instrouttopo, 
                            storageCluster, status, nr_tasks, nr_cores_per_task, miscParameters):
     stor_cluster = dataProductCluster(storageCluster)
     proc_cluster = processingCluster(storageCluster, nr_tasks, nr_cores_per_task)
-    print >> ofile, r"""<item index="0">
+    print(r"""<item index="0">
                   <lofar:pipeline xsi:type="lofar:CalibrationPipelineType">
                     <topology>%s</topology>
                     <predecessor_topology>%s</predecessor_topology>
@@ -515,18 +516,29 @@ def writeXMLTargetPipeline(ofile, topo, pred_topo, name, descr, defaulttemplate,
                     <description>%s (%s)</description>
                     <currentStatus>
                       <mom2:%sStatus/>
-                    </currentStatus>""" % (topo, pred_topo, name, name, descr, status)
+                    </currentStatus>""" % (topo, pred_topo, name, name, descr, status), file=ofile)
     if proc_cluster:
-        print >> ofile, proc_cluster
-    print >> ofile, r"""                    <pipelineAttributes>
+        print(proc_cluster, file=ofile)
+    print(r"""                    <pipelineAttributes>
                       <defaultTemplate>%s</defaultTemplate>
                       <flaggingStrategy>%s</flaggingStrategy>
-                      <duration>%s</duration>""" % (defaulttemplate, flagging, duration)
+                      <duration>%s</duration>""" % (defaulttemplate, flagging, duration), file=ofile)
     writeDemixParameters(ofile, demixParameters)
     ##TODO if bbsParameters: ??
     writeBBSParameters(ofile, bbsParameters)
     writeMiscParameters(ofile, miscParameters)
-    print >> ofile, r"""</pipelineAttributes>
+    if instroutname and instrouttopo:
+        instr_out = """                        <item>
+                          <lofar:instrumentModelDataProduct>
+                            <name>%s</name>
+                            <topology>%s</topology>
+                            <status>no_data</status>
+                            %s
+                          </lofar:instrumentModelDataProduct>
+                        </item>""" % (instroutname, instrouttopo, stor_cluster)
+    else:
+        instr_out = ""
+    print(r"""</pipelineAttributes>
                     <usedDataProducts>
                       <item>
                         <lofar:uvDataProduct topology="%s">
@@ -548,9 +560,11 @@ def writeXMLTargetPipeline(ofile, topo, pred_topo, name, descr, defaulttemplate,
                             %s
                           </lofar:uvDataProduct>
                         </item>
+                        %s
                     </resultDataProducts>
                     </lofar:pipeline>
-                  </item>""" % (uvintopo, uvinname, instrintopo, instrinname, uvoutname, uvouttopo, stor_cluster)
+                  </item>""" % (uvintopo, uvinname, instrintopo, instrinname,
+                  uvoutname, uvouttopo, stor_cluster, instr_out), file=ofile)
 
 
 def writeXMLCalPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, flagging, duration, skymodel, demixParameters,
@@ -558,7 +572,7 @@ def writeXMLCalPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, flaggi
                     nr_cores_per_task, miscParameters):
     stor_cluster = dataProductCluster(storageCluster)
     proc_cluster = processingCluster(storageCluster, nr_tasks, nr_cores_per_task)
-    print >> ofile, r"""        <item index="0">
+    print(r"""        <item index="0">
               <lofar:pipeline xsi:type="lofar:CalibrationPipelineType">
                 <topology>%s</topology>
                 <predecessor_topology>%s</predecessor_topology>
@@ -566,19 +580,19 @@ def writeXMLCalPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, flaggi
                 <description>%s (%s)</description>
                 <currentStatus>
                   <mom2:%sStatus/>
-                </currentStatus>""" % (topo, pred_topo, name, name, descr, status)
+                </currentStatus>""" % (topo, pred_topo, name, name, descr, status), file=ofile)
     if proc_cluster:
-        print >> ofile, proc_cluster
-    print >> ofile, r"""                <pipelineAttributes>
+        print(proc_cluster, file=ofile)
+    print(r"""                <pipelineAttributes>
                   <defaultTemplate>%s</defaultTemplate>
                   <flaggingStrategy>%s</flaggingStrategy>
                   <duration>%s</duration>
-                  <skyModelDatabase>%s</skyModelDatabase>""" % (defaulttemplate, flagging, duration, skymodel)
+                  <skyModelDatabase>%s</skyModelDatabase>""" % (defaulttemplate, flagging, duration, skymodel), file=ofile)
     writeDemixParameters(ofile, demixParameters)
     ##TODO if bbsParameters: ??
     writeBBSParameters(ofile, bbsParameters)
     writeMiscParameters(ofile, miscParameters)
-    print >> ofile, r"""</pipelineAttributes>
+    print(r"""</pipelineAttributes>
                 <usedDataProducts>
                   <item>
                     <lofar:uvDataProduct topology="%s">
@@ -604,7 +618,7 @@ def writeXMLCalPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, flaggi
                   </item>
                 </resultDataProducts>
               </lofar:pipeline>
-            </item>""" % (uvintopo, instroutname, instrouttopo, stor_cluster, uvouttopo, uvouttopo, stor_cluster)
+            </item>""" % (uvintopo, instroutname, instrouttopo, stor_cluster, uvouttopo, uvouttopo, stor_cluster), file=ofile)
 
 
 def writeXMLAvgPipeline(ofile, topo, pred_topo, name, descr, defaulttemplate, flagging, duration,
@@ -612,7 +626,7 @@ def writeXMLAvgPipeline(ofile, topo, pred_topo, name, descr, defaulttemplate, fl
                         miscParameters):
     stor_cluster = dataProductCluster(storageCluster)
     proc_cluster = processingCluster(storageCluster, nr_tasks, nr_cores_per_task)
-    print >> ofile, r"""        <item index="0">
+    print(r"""        <item index="0">
               <lofar:pipeline xsi:type="lofar:AveragingPipelineType">
                 <topology>%s</topology>
                 <predecessor_topology>%s</predecessor_topology>
@@ -620,16 +634,16 @@ def writeXMLAvgPipeline(ofile, topo, pred_topo, name, descr, defaulttemplate, fl
                 <description>%s (%s)</description>
                 <currentStatus>
                   <mom2:%sStatus/>
-                </currentStatus>""" % (topo, pred_topo, name, name, descr, status)
+                </currentStatus>""" % (topo, pred_topo, name, name, descr, status), file=ofile)
     if proc_cluster:
-        print >> ofile, proc_cluster
-    print >> ofile, r"""                <pipelineAttributes>
+        print(proc_cluster, file=ofile)
+    print(r"""                <pipelineAttributes>
                   <defaultTemplate>%s</defaultTemplate>
                   <flaggingStrategy>%s</flaggingStrategy>
-                  <duration>%s</duration>""" % (defaulttemplate, flagging, duration)
+                  <duration>%s</duration>""" % (defaulttemplate, flagging, duration), file=ofile)
     writeDemixParameters(ofile, demixParameters)
     writeMiscParameters(ofile, miscParameters)
-    print >> ofile, r"""</pipelineAttributes>
+    print(r"""</pipelineAttributes>
                 <usedDataProducts>
                   <item>
                     <lofar:uvDataProduct topology="%s">
@@ -647,7 +661,7 @@ def writeXMLAvgPipeline(ofile, topo, pred_topo, name, descr, defaulttemplate, fl
                   </item>
                 </resultDataProducts>
               </lofar:pipeline>
-            </item>""" % (uvintopo, uvouttopo, uvouttopo, stor_cluster)
+            </item>""" % (uvintopo, uvouttopo, uvouttopo, stor_cluster), file=ofile)
 
 
 def writeXMLPulsarPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, duration, bfintopo, pouttopo,
@@ -658,7 +672,7 @@ def writeXMLPulsarPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, dur
                        miscParameters):
     stor_cluster = dataProductCluster(storageCluster)
     proc_cluster = processingCluster(storageCluster, nr_tasks, nr_cores_per_task)
-    print >> ofile, r"""        <item index="0">
+    print(r"""        <item index="0">
               <lofar:pipeline xsi:type="lofar:PulsarPipelineType">
                 <topology>%s</topology>
                 <predecessor_topology>%s</predecessor_topology>
@@ -666,10 +680,10 @@ def writeXMLPulsarPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, dur
                 <description>%s (%s)</description>
                 <currentStatus>
                   <mom2:%sStatus/>
-                </currentStatus>""" % (topo, pred_topo, name, name, descr, status)
+                </currentStatus>""" % (topo, pred_topo, name, name, descr, status), file=ofile)
     if proc_cluster:
-        print >> ofile, proc_cluster
-    print >> ofile, r"""                <pipelineAttributes>
+        print(proc_cluster, file=ofile)
+    print(r"""                <pipelineAttributes>
                   <defaultTemplate>%s</defaultTemplate>
                   <duration>%s</duration>
                   <_2bf2fitsExtraOpts>%s</_2bf2fitsExtraOpts>
@@ -699,9 +713,9 @@ def writeXMLPulsarPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, dur
                                               writeBoolean(norfi), prepdataExtraOpts, prepfoldExtraOpts,
                                               prepsubbandExtraOpts, pulsar, writeBoolean(rawTo8bit), rfifindExtraOpts,
                                               writeBoolean(rrats), writeBoolean(singlePulse), writeBoolean(skipDspsr),
-                                              writeBoolean(skipDynamicSpectrum), writeBoolean(skipPrepfold), tsubint)
+                                              writeBoolean(skipDynamicSpectrum), writeBoolean(skipPrepfold), tsubint), file=ofile)
     writeMiscParameters(ofile, miscParameters)
-    print >> ofile, r"""
+    print(r"""
                 </pipelineAttributes>
                 <usedDataProducts>
                   <item>
@@ -720,7 +734,7 @@ def writeXMLPulsarPipe(ofile, topo, pred_topo, name, descr, defaulttemplate, dur
                   </item>
                 </resultDataProducts>
               </lofar:pipeline>
-            </item>""" % (bfintopo, pouttopo, pouttopo, stor_cluster)
+            </item>""" % (bfintopo, pouttopo, pouttopo, stor_cluster), file=ofile)
 
 
 # nv 13okt2014: #6716 - Implement Long Baseline Pipeline
@@ -729,7 +743,7 @@ def writeXMLLongBaselinePipe(ofile, topo, pred_topo, name, descr, defaulttemplat
                              status, nr_tasks, nr_cores_per_task):
     stor_cluster = dataProductCluster(storageCluster)
     proc_cluster = processingCluster(storageCluster, nr_tasks, nr_cores_per_task)
-    print >> ofile, r"""        <item index="0">
+    print(r"""        <item index="0">
               <lofar:pipeline xsi:type="lofar:LongBaselinePipelineType">
                 <topology>%s</topology>
                 <predecessor_topology>%s</predecessor_topology>
@@ -737,10 +751,10 @@ def writeXMLLongBaselinePipe(ofile, topo, pred_topo, name, descr, defaulttemplat
                 <description>%s (%s)</description>
                 <currentStatus>
                   <mom2:%sStatus/>
-                </currentStatus>""" % (topo, pred_topo, name, name, descr, status)
+                </currentStatus>""" % (topo, pred_topo, name, name, descr, status), file=ofile)
     if proc_cluster:
-        print >> ofile, proc_cluster
-    print >> ofile, r"""                <pipelineAttributes>
+        print(proc_cluster, file=ofile)
+    print(r"""                <pipelineAttributes>
                   <defaultTemplate>%s</defaultTemplate>
                   <duration>%s</duration>
                   <subbandsPerSubbandGroup>%s</subbandsPerSubbandGroup>
@@ -764,7 +778,7 @@ def writeXMLLongBaselinePipe(ofile, topo, pred_topo, name, descr, defaulttemplat
                 </resultDataProducts>
               </lofar:pipeline>
             </item>""" % (defaulttemplate, duration, subbands_per_subbandgroup, subbandgroups_per_ms,
-                          uvintopo, uvouttopo, uvouttopo, stor_cluster)
+                          uvintopo, uvouttopo, uvouttopo, stor_cluster), file=ofile)
 
 
 def writeDataProducts(dataTopo, correlatedData, coherentStokesData, incoherentStokesData, storageCluster):
@@ -801,19 +815,19 @@ def writeDataProducts(dataTopo, correlatedData, coherentStokesData, incoherentSt
 
 
 def writeImagingPipelineInputDataproducts(ofile, topologyList):
-    print >> ofile, r"""                <usedDataProducts>"""
+    print(r"""                <usedDataProducts>""", file=ofile)
     for topology in topologyList:
-        print >> ofile, r"""                <item>
+        print(r"""                <item>
               <lofar:uvDataProduct topology="%s">
                 <name>%s</name>
               </lofar:uvDataProduct>
-            </item>""" % (topology, topology)
-    print >> ofile, r"""               </usedDataProducts>"""
+            </item>""" % (topology, topology), file=ofile)
+    print(r"""               </usedDataProducts>""", file=ofile)
 
 
 def writeSkyImageOutputDataproduct(ofile, topology, storageCluster):
     stor_cluster = dataProductCluster(storageCluster)
-    print >> ofile, r"""                <resultDataProducts>
+    print(r"""                <resultDataProducts>
                   <item>
                     <lofar:skyImageDataProduct>
                       <name>%s</name>
@@ -824,22 +838,22 @@ def writeSkyImageOutputDataproduct(ofile, topology, storageCluster):
                   </item>
                 </resultDataProducts>
               </lofar:pipeline>
-            </item>""" % (topology, topology, stor_cluster)
+            </item>""" % (topology, topology, stor_cluster), file=ofile)
 
 
 def writeFolderStart(ofile, folderNr, packageName, packageDescription, processing):
-    print >> ofile, r"""   <item index="0">
+    print(r"""   <item index="0">
         <lofar:folder topology_parent="true">
           <topology>%s</topology>
           <name>%s</name>
           <description>%s (%s)</description>
-          <children>""" % (folderNr, packageName, packageDescription, processing)
+          <children>""" % (folderNr, packageName, packageDescription, processing), file=ofile)
 
 
 def writeFolderEnd(ofile):
-    print >> ofile, r"""</children>
+    print(r"""</children>
   </lofar:folder>
-  </item>"""
+  </item>""", file=ofile)
 
 
 def writeBoolean(booleanValue):
@@ -865,39 +879,39 @@ def toBool(strVal):
 
 
 def writeProjectStart(ofile, version, projectName):
-    print >> ofile, r"""<?xml version="1.0" encoding="UTF-8"?>
+    print(r"""<?xml version="1.0" encoding="UTF-8"?>
   <lofar:project xmlns:lofar="http://www.astron.nl/MoM2-Lofar" xmlns:mom2="http://www.astron.nl/MoM2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.astron.nl/MoM2-Lofar http://lofar.astron.nl:8080/mom3/schemas/LofarMoM2.xsd http://www.astron.nl/MoM2 http://lofar.astron.nl:8080/mom3/schemas/MoM2.xsd ">
   <version>%s</version>
   <template version="%s" author="Alwin de Jong,Adriaan Renting" changedBy="Adriaan Renting">
   <description>XML Template generator version %s</description>
   </template>
   <name>%s</name>
-  <children>""" % (version, version, version, projectName)
+  <children>""" % (version, version, version, projectName), file=ofile)
 
 
 def writeProjectEnd(ofile):
-    print >> ofile, r"""          </children>
-  </lofar:project>"""
+    print(r"""          </children>
+  </lofar:project>""", file=ofile)
 
 
 def writeMainFolderStart(ofile, mainFolderName, mainFolderDescription):
-    print >> ofile, r"""   <item index="0">
+    print(r"""   <item index="0">
     <lofar:folder topology_parent="false">
     <name>%s</name>
     <description>%s</description>
-    <children>""" % (mainFolderName, mainFolderDescription)
+    <children>""" % (mainFolderName, mainFolderDescription), file=ofile)
 
 
 def writeMainFolderEnd(ofile):
-    print >> ofile, r"""</children>
+    print(r"""</children>
   </lofar:folder>
-  </item>"""
+  </item>""", file=ofile)
 
 
 def writeImagingPipelineXML(ofile, input_list, bbsParameters, storageCluster, status, nr_tasks, nr_cores_per_task,
                             miscParameters):
     proc_cluster = processingCluster(storageCluster, nr_tasks, nr_cores_per_task)
-    print >> ofile, r"""<item index="0">
+    print(r"""<item index="0">
         <lofar:pipeline xsi:type="lofar:%(imaging_pipe_type)s">
           <topology>%(imaging_pipe_topology)s</topology>
           <predecessor_topology>%(imaging_pipe_predecessors_string)s</predecessor_topology>
@@ -905,10 +919,10 @@ def writeImagingPipelineXML(ofile, input_list, bbsParameters, storageCluster, st
           <description>%(imaging_pipe_name)s (Imaging pipeline beam %(beamNr)s)</description>
           <currentStatus>
             <mom2:%(initial_status)sStatus/>
-          </currentStatus>""" % (input_list)
+          </currentStatus>""" % (input_list), file=ofile)
     if proc_cluster:
-        print >> ofile, proc_cluster
-    print >> ofile, r"""                <imagingPipelineAttributes>
+        print(proc_cluster, file=ofile)
+    print(r"""                <imagingPipelineAttributes>
             <defaultTemplate>%(imaging_pipe_default_template)s</defaultTemplate>
             <duration>%(imaging_pipe_duration)s</duration>
             <nrOfOutputSkyImage>%(nrImages)s</nrOfOutputSkyImage>
@@ -924,12 +938,12 @@ def writeImagingPipelineXML(ofile, input_list, bbsParameters, storageCluster, st
               <uvMin>%(uvMin)s</uvMin>
               <uvMax>%(uvMax)s</uvMax>
               <stokes>%(stokesToImage)s</stokes>
-            </imagingParameters>""" % (input_list)
+            </imagingParameters>""" % (input_list), file=ofile)
     if bbsParameters:
         writeBBSParameters(ofile, bbsParameters)
         writeMiscParameters(ofile, miscParameters)
-    print >> ofile, r"""
-          </imagingPipelineAttributes>"""
+    print(r"""
+          </imagingPipelineAttributes>""", file=ofile)
 
 
 def parseOptions(argv):
@@ -940,16 +954,16 @@ def parseOptions(argv):
     try:
         opts, args = getopt.getopt(argv, "hi:o:a", ["ifile=", "ofile="])
     except getopt.GetoptError:
-        print 'xmlgen.py -i <inputfile> [-o <outputfile>] [-a]'
+        print('xmlgen.py -i <inputfile> [-o <outputfile>] [-a]')
         sys.exit(2)
 
     if len(opts) == 0:
-        print 'usage: xmlgen.py -i <inputfile> [-o <outputfile>] [-a]'
+        print('usage: xmlgen.py -i <inputfile> [-o <outputfile>] [-a]')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print 'usage: xmlgen.py -i <inputfile> [-o <outputfile.xml>] [-a]'
+            print('usage: xmlgen.py -i <inputfile> [-o <outputfile.xml>] [-a]')
             sys.exit()
         elif opt in ("-i", "--ifile"):
             inputfile = arg
@@ -961,10 +975,10 @@ def parseOptions(argv):
     if (outputfile == inputfile):
         raise GenException("Output file'" + outputfile + "' has the same name as inputfile")
     if len(outputfile):
-        print "Writing output xml file: " + outputfile
+        print("Writing output xml file: " + outputfile)
     else:
         outputfile = splitext(inputfile)[0] + '.xml'
-        print "Output file not specified, writing output xml file:'" + outputfile + "'"
+        print("Output file not specified, writing output xml file:'" + outputfile + "'")
     return (inputfile, outputfile, status)
 
 
@@ -1018,7 +1032,7 @@ def readProcessing(value):
             raise GenException(
                 "the specified processing '" + processing + "' is not recognized. It should be one of %s" % ", ".join(
                     PROCESSING))
-        print "processing = %s" % processing
+        print("processing = %s" % processing)
     else:
         processing = ''
     return processing
@@ -1043,7 +1057,7 @@ def readKeyValuePair(line):
 def readBoolKey(keyname, value):
     if value:
         key = toBool(value)
-        print "%s = %s" % (keyname, value)
+        print("%s = %s" % (keyname, value))
     else:
         raise GenException("the %s has not been specified" % keyname)
     return key
@@ -1052,7 +1066,7 @@ def readBoolKey(keyname, value):
 def readStringKey(keyname, value):
     if value:
         key = value
-        print "%s = %s" % (keyname, value)
+        print("%s = %s" % (keyname, value))
     else:
         raise GenException("the %s has not been specified" % keyname)
     return key
@@ -1061,7 +1075,7 @@ def readStringKey(keyname, value):
 def readIntKey(keyname, value):
     if value:
         key = int(value)  # TODO try: ?
-        print "%s = %s" % (keyname, key)
+        print("%s = %s" % (keyname, key))
     else:
         raise GenException("the %s has not been specified" % keyname)
     return key
@@ -1070,7 +1084,7 @@ def readIntKey(keyname, value):
 def readFloatKey(keyname, value):
     if value:
         key = float(value)  # TODO try: ?
-        print "%s = %s" % (keyname, key)
+        print("%s = %s" % (keyname, key))
     else:
         raise GenException("the %s has not been specified" % keyname)
     return key
@@ -1094,7 +1108,7 @@ def readListKey(keyname, value):
         if key not in keylist:
             raise GenException(
                 "the %s parameter '%s' not correct. Should be one of %s" % (keyname, value, ", ".join(keylist)))
-        print "%s = %s" % (keyname, key)
+        print("%s = %s" % (keyname, key))
     else:  # TODO added this as it seemed to make sense?
         raise GenException("the %s has not been specified" % keyname)
     return key
@@ -1111,7 +1125,7 @@ def readIntListKey(keyname, value):
         if key not in keylist:
             raise GenException(
                 "the %s parameter '%s' not correct. Should be one of %s" % (keyname, value, str(keylist)))
-        print "%s = %s" % (keyname, key)
+        print("%s = %s" % (keyname, key))
     else:  # TODO added this as it seemed to make sense?
         raise GenException("the %s has not been specified" % keyname)
     return key
@@ -1140,7 +1154,7 @@ def processHeader(header):
 def readOptionalStringKey(keyname, value):
     if value:
         key = value
-        print "%s = %s" % (keyname, value)
+        print("%s = %s" % (keyname, value))
     else:
         printWarning("The %s has not been specified" % keyname)
         key = ""  # TODO put in some dummy description?
@@ -1152,10 +1166,10 @@ def readPackageTag(value):
         packageTag = value
         if len(packageTag) > 8:
             raise GenException("the package tag:'" + packageTag + "' is too long. Max 8 characters.")
-        print "package tag = %s" % packageTag
+        print("package tag = %s" % packageTag)
     else:
         packageTag = ''
-        print "no package tag will be used."
+        print("no package tag will be used.")
     return packageTag
 
 
@@ -1163,7 +1177,7 @@ def readStartTimeUTC(value):
     if value:
         startTimeUTC = value
         startTime = datetime.strptime(startTimeUTC, '%Y-%m-%d %H:%M:%S')
-        print "start time (UTC) = %s" % startTime.strftime('%b %d %Y %H:%M:%S')
+        print("start time (UTC) = %s" % startTime.strftime('%b %d %Y %H:%M:%S'))
         set_starttime = True
 
         return startTime, set_starttime
@@ -1172,7 +1186,7 @@ def readStartTimeUTC(value):
 def readTimeStep(number, value):
     if value:
         timeStep = int(value)
-        print "time step%i = %s seconds" % (number, timeStep)
+        print("time step%i = %s seconds" % (number, timeStep))
     else:
         timeStep = ''
     return timeStep
@@ -1190,7 +1204,7 @@ def readStationList(value):
                 'NL', NL_STATIONS).replace(
                 'nl', NL_STATIONS).replace(
                 'dutch', NL_STATIONS).split(','))))
-        print "stations = %s" % stationList
+        print("stations = %s" % stationList)
     else:
         raise GenException("the stationList has not been specified")
     return stationList
@@ -1200,9 +1214,9 @@ def readCreate_extra_ncp_beam(value):
     if value:
         create_extra_ncp_beam = toBool(value)  # TODO toBool can return True, False or ''
         if create_extra_ncp_beam:
-            print "extra ncp beam will be created"
+            print("extra ncp beam will be created")
         else:
-            print "extra ncp beam will not be created"
+            print("extra ncp beam will not be created")
     else:
         raise GenException("create_extra_ncp_beam has not been specified")
     return create_extra_ncp_beam
@@ -1231,11 +1245,11 @@ def readImagingBBS(value):
 def checkDemixMultiples(avg_freq_step, avg_time_step, demix_freq_step, demix_time_step, name):
     try:
         if avg_freq_step and demix_freq_step:
-            if int(demix_freq_step) % int(avg_freq_step) <> 0:
+            if int(demix_freq_step) % int(avg_freq_step) != 0:
                 raise GenException("demixFreqStep (%s) should be integer multiple of averagingFreqStep (%s) for %s" % (
                                     demix_freq_step, avg_freq_step, name))
         if avg_time_step and demix_time_step:
-            if int(demix_time_step) % int(avg_time_step) <> 0:
+            if int(demix_time_step) % int(avg_time_step) != 0:
                 raise GenException("demixTimeStep (%s) should be integer multiple of averagingTimeStep (%s) for %s" % (
                                     demix_time_step, avg_time_step, name))
     except:
@@ -1379,9 +1393,9 @@ def readCalibratorBeam(startLine, lines, globalSubbands, globalTABrings, globalB
 
         calibratorBeam[7] = toBool(calibratorBeam[7])  # create pipeline?
         create_calibrator_pipeline = calibratorBeam[7]
-        print ("right ascenscion:" + str(calibratorBeam[0]) + " declination:" + str(calibratorBeam[1]) + " target:" +
+        print(("right ascenscion:" + str(calibratorBeam[0]) + " declination:" + str(calibratorBeam[1]) + " target:" +
                calibratorBeam[2] + " subbands:" + calibratorBeam[3] + " nrSubbands:" + calibratorBeam[
-                   4] + " create pipeline:" + str(calibratorBeam[7]))
+                   4] + " create pipeline:" + str(calibratorBeam[7])))
 
         if create_calibrator_pipeline:
             BBSDefault = ['', '', '', 'true', '', '', '', '']
@@ -1507,10 +1521,10 @@ def readTargetBeams(startLine, lines, globalSubbands, globalBBS, globalDemix, gl
                         targetBeams[nr_beams][6] = float(targetBeams[nr_beams][6])  # TAB ring size
 
             targetBeams[nr_beams][7] = toBool(targetBeams[nr_beams][7])  # create pipeline coupled to target beam?
-            print ("right ascenscion:" + str(targetBeams[nr_beams][0]) + " declination:" +
+            print(("right ascenscion:" + str(targetBeams[nr_beams][0]) + " declination:" +
                    str(targetBeams[nr_beams][1]) + " target:" + targetBeams[nr_beams][2] + " subbands:" +
                    targetBeams[nr_beams][3] + " nrSubbands:" + targetBeams[nr_beams][4] + " create pipeline:" +
-                   str(targetBeams[nr_beams][7]))
+                   str(targetBeams[nr_beams][7])))
 
             BBSDefault = ['', '', '', 'true', '', '', '', '']
             DemixDefault = ['', '', '', '', '', '', '']
@@ -1595,7 +1609,7 @@ def readTargetBeams(startLine, lines, globalSubbands, globalBBS, globalDemix, gl
             nr_beams += 1
     totSubbands = sum([int(targetBeams[i][4]) for i in range(len(targetBeams))])
     maxSubbands = MAX_NR_SUBBANDS[NUMBER_OF_BITS_PER_SAMPLE.index(numberOfBitsPerSample)]
-    print "total subbands for all target beams = %s" % totSubbands
+    print("total subbands for all target beams = %s" % totSubbands)
     if totSubbands > maxSubbands:  # TODO this doesn't count the calibrator beam!
         raise GenException(
             "the total number of subbands (%s) for all target beams exceeds the maximum number of subbands (%s) for %s bit mode" % (
@@ -1625,7 +1639,7 @@ def determineNrImages(targetBeams, nrSubbandsPerImage, variableName):
     nrImages = []
     for beam in targetBeams:
         if beam[7]:  ##Make pipelines
-            if int(beam[4]) % nrSubbandsPerImage <> 0:
+            if int(beam[4]) % nrSubbandsPerImage != 0:
                 raise GenException("nrSubbands (%s) should be integer dividable by the %s (%s) for target beam %i" % (
                 beam[4], variableName, nrSubbandsPerImage, targetBeams.index(beam) + 1))
             nrImages.append(int(beam[4]) / nrSubbandsPerImage)
@@ -1646,8 +1660,7 @@ def readBlock(lines, projectName, blockNr):
         "globalTABrings": [],
         "coherentStokesData": False,
         "flysEye": False,
-        "numberOfBitsPerSample": 0,
-        "storagemanager": "dysco"}
+        "numberOfBitsPerSample": 0}
 
     for lineNr, cline in enumerate(lines):
         if "=" in cline and not cline.startswith(('BBS', 'Demix', 'Pulsar')):  # we skip beam and pipelines lines
@@ -1785,7 +1798,7 @@ def readBlock(lines, projectName, blockNr):
             elif key == "repeat":
                 try:
                     s["nrRepeats"] = int(value)
-                    print "number of repeats = %s" % s["nrRepeats"]
+                    print("number of repeats = %s" % s["nrRepeats"])
                 except:
                     raise GenException("the repeat parameter is not valid for BLOCK: %i" % blockNr)
             elif key == "cluster":
@@ -1793,21 +1806,21 @@ def readBlock(lines, projectName, blockNr):
             elif key == "nr_tasks":
                 try:
                     s["nr_tasks"] = int(value)
-                    print "number of tasks = %i" % s["nr_tasks"]
+                    print("number of tasks = %i" % s["nr_tasks"])
                 except:
                     raise GenException("the number of tasks parameter is not valid for BLOCK: %i" % blockNr)
             elif key == "nr_cores_per_task":
                 try:
                     s["nr_cores_per_task"] = int(value)
-                    print "number of cores per task = %i" % s["nr_cores_per_task"]
+                    print("number of cores per task = %i" % s["nr_cores_per_task"])
                 except:
                     raise GenException("the number of cores per task parameter is not valid for BLOCK: %i" % blockNr)
             elif key == "nr_nodes":
                 try:
                     s["nr_tasks"] = int(value) * DEFAULT_TASKS_PER_NODE
                     s["nr_cores_per_task"] = DEFAULT_CORES_PER_TASK
-                    print "number of nodes found, converted to number of tasks = %i, number of cores per task = %i" % (
-                    s["nr_tasks"], s["nr_cores_per_task"])
+                    print("number of nodes found, converted to number of tasks = %i, number of cores per task = %i" % (
+                    s["nr_tasks"], s["nr_cores_per_task"]))
                 except:
                     raise GenException("the number of nodes parameter is not valid for BLOCK: %i" % blockNr)
             elif key == "storagemanager":
@@ -1841,6 +1854,9 @@ def checkSettings(settings, blockNr):
     elif settings["processing"] == 'Imaging' and settings["calibration_mode"] == "none":
         raise GenException(
             "processing=imaging requires calibration. While calibration is set to 'none' for BLOCK: %i" % blockNr)
+    elif settings["processing"] == 'Prefactor' and settings["calibration_mode"] == "none":
+        raise GenException(
+            "processing=prefactor requires calibration. While calibration is set to 'none' for BLOCK: %i" % blockNr)
     if settings["nr_beams"] == 0:
         raise GenException("no target beams have been specified for BLOCK: %i" % blockNr)
     elif settings["calibration_mode"] == "none":
@@ -1875,9 +1891,9 @@ def checkSettings(settings, blockNr):
         raise GenException(
             "FlysEye cannot be switched on when coherentStokesData is switched off, specified in BLOCK: %i" % blockNr)
 
-    if settings["processing"] == 'Imaging':
+    if (settings["processing"] == 'Imaging') or (settings["processing"] == 'Prefactor'):
         if "imagingPipeline" in settings:
-            if settings["imagingPipeline"] == 'none':
+            if settings["imagingPipeline"] == 'none': # We also allow this for Prefactor, to not over complicate things
                 settings["do_imaging"] = False
             else:
                 if not "nrSubbandsPerImage" in settings:
@@ -1893,14 +1909,18 @@ def checkSettings(settings, blockNr):
                 elif settings["imagingPipeline"] == 'MSSS':
                     settings["imaging_pipe_type"] = 'ImagingPipelineMSSSType'
                     settings["imaging_pipe_default_template"] = "MSSS Imaging Pipeline"
-                settings[
-                    "imaging_pipe_duration"] = 0  # img pipeline duration placeholder, MoM rejects <duration></duration>
+                #TODO: Will need to be uncommented when a 'PREFACTOR' default template goes into production.
+                #elif settings["imagingPipeline"] == 'Prefactor':
+                #    settings["imaging_pipe_type"] = 'Prefactor'
+                #    settings["imaging_pipe_default_template"] = "PREFACTOR"
+                settings["imaging_pipe_duration"] = 0  # img pipeline duration placeholder, MoM rejects <duration></duration>
                 # determine nrImages
                 settings["nrImages"] = determineNrImages(settings["targetBeams"], settings["nrSubbandsPerImage"],
                                                          "nrSubbandsPerImage")
         else:
             raise GenException(
-                "the 'imagingPipeline' type parameter has not been specified while processing is set to Imaging. imagingPipeline should be one of: MSSS, standard or none");
+                "the 'imagingPipeline' type parameter has not been specified while processing is set to %s" % settings["processing"] +
+                ". imagingPipeline should be one of: MSSS, standard or none");
     else:
         settings["do_imaging"] = False
 
@@ -1942,7 +1962,7 @@ def writeImagingPipeline(ofile, nr_beams, targetBeams, blockTopo, nrRepeats,
         create_pipeline = targetBeams[beamNr][7]
         if create_pipeline:
             imaging_pipe_topology = blockTopo + 'PI' + str(beamNr)  # 1.PI
-            imaging_pipe_output_topology = imaging_pipe_topology + '.dps'  # 1.PI.dps
+            imaging_pipe_output_topology = imaging_pipe_topology + '.sky.dps'  # 1.PI.dps
             imaging_pipe_predecessors_string = ','.join(
                 imaging_pipe_predecessors[beamNr])  # creates nrRepeats long comma separated list
 
@@ -1993,7 +2013,7 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
         incoherentStokesData = settings['incoherentStokesData']
         nr_beams = settings['nr_beams']
     except KeyError as ex:
-        print ex
+        print(ex)
         raise GenException("Could not read required setting! (%s)" % ex.message)
 
     repeatTopo = blockTopo + str(repeatNr)
@@ -2002,6 +2022,7 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
     tar_obs_uv_data_topologies = []
     tar_obs_bf_data_topologies = []
     tar_pipe_topologies = []
+    tar_prepipe_topologies = []
     LB_preproc_pipe_predecessor = []
     LB_preproc_pipe_topologies = []
     LB_preproc_pipe_output_MS_topologies = []
@@ -2017,6 +2038,9 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
     tar_obs_topology = repeatTopo + '.T'  # 1.T
     cal_pipe_calibrator_topology = repeatTopo + '.CPC'  # 1.CPC
     cal_pipe_target_topology = repeatTopo + '.CPT'  # 1.CPT
+
+    #To identify the preprocessor pipelines for PREFACTOR
+    prepipe_calibrator_topology = repeatTopo + '.CPP'  # 1.CPP , work around for bug SW-681 in MoM, avoid re-using a topology.
 
     if processing == 'Imaging':
         if settings['calibration_mode'] == "internal":
@@ -2065,6 +2089,24 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
             cal_pipe_target_description = "Cal Pipe Target"
             tar_pipe_predecessor = tar_obs_topology + ',' + cal_pipe_calibrator_topology  # 1.T,1.CPC
             tar_pipe_input_INST_topo = cal_pipe_calibrator_topology + '.inst.dps'  # 1.CPC.inst.dps
+    elif processing == 'Prefactor':
+        cal_prepipe_default_template = "Preprocessing Pipeline"
+        tar_prepipe_default_template = "Preprocessing Pipeline"
+        prepipe_calibrator_description = "Preprocessing"
+        prepipe_target_description = "Preprocessing"
+        prepipe_target_predecessor = tar_obs_topology  # 1.T
+        prepipe_calibrator_predecessor = cal_obs_topology  # 1.C
+
+        cal_obs_pipe_default_template = "Calibration Pipeline Target" #TODO fill in the correct PREFACTOR at some point
+        cal_tar_pipe_default_template = "Calibration Pipeline Target" #TODO fill in the correct PREFACTOR at some point
+        cal_pipe_calibrator_description = "Prefactor Calibrator C"
+        cal_pipe_target_description = "Prefactor Calibrator T" #Maybe this is for "internal" calibration? It's not for the Target Calibration
+        cal_pipe_predecessor = prepipe_calibrator_topology #1.CPP
+        if settings['calibration_mode'] == "internal":
+            tar_pipe_input_INST_topo = cal_pipe_target_topology + '.inst.dps'  # 1.P1.dps
+        #    raise GenException('Prefactor mode currently does not support an internal calibration beam.')
+        else:
+            tar_pipe_input_INST_topo = cal_pipe_calibrator_topology + '.inst.dps'  # 1.CPC.inst.dps
 
     bfDataExtension = determineBfDataExtension(coherentStokesData, incoherentStokesData)
 
@@ -2085,6 +2127,7 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
         tar_obs_uv_data_topologies.append(tar_obs_beam_topologies[beamNr] + ".uv.dps")
 
         tar_pipe_topologies.append(repeatTopo + ".PT" + beam_nr_str)
+        tar_prepipe_topologies.append(repeatTopo + ".PPT" + beam_nr_str)
 
         if processing == 'LongBaseline':
             LB_preproc_pipe_topologies.append(repeatTopo + ".PTLB" + beam_nr_str)
@@ -2272,6 +2315,53 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
                             nr_tasks,
                             nr_cores_per_task,
                             miscParameters)
+
+        elif processing == 'Prefactor':
+            calibratorBBS = settings['calibratorBBS']
+            if not calibratorBBS:
+                raise GenException("BBS SkyModel is not specified for pipeline coupled to calibrator beam")
+            calibratorDemix = settings['calibratorDemix']
+            if len(calibratorDemix) > 1:
+                raise GenException("calibratorDemix > 1 not supported in Prefactor right now.")
+            writeXMLAvgPipeline(ofile,
+                                prepipe_calibrator_topology,
+                                cal_obs_topology,
+                                cal_pipe_name[:-1] + "P", # To work around bug SW-681 in MoM, we should not re-use a topology
+                                prepipe_calibrator_description,
+                                cal_prepipe_default_template,
+                                settings['flaggingStrategy'],
+                                settings['calibratorBeam'][8],
+                                calibratorDemix[0],
+                                cal_obs_beam0_topology + '.uv.dps',
+                                prepipe_calibrator_topology + '.uv.dps',
+                                settings['cluster'],
+                                status,
+                                nr_tasks,
+                                nr_cores_per_task,
+                                miscParameters)
+
+            # TODO ['', '', '', '', '', '', ''] is really ugly, this will break the regression test
+            writeXMLCalPipe(ofile,
+                            cal_pipe_calibrator_topology,
+                            cal_pipe_predecessor,
+                            cal_pipe_name,
+                            cal_pipe_calibrator_description,
+                            cal_obs_pipe_default_template,
+                            settings['flaggingStrategy'],
+                            settings['calibratorBeam'][8],
+                            calibratorBBS[0][0],
+                            settings['calibratorDemix'][0],
+                            ['', '', '', '', '', '', ''],
+                            cal_pipe_predecessor + '.uv.dps',
+                            cal_pipe_calibrator_topology + '.inst.dps',
+                            cal_pipe_calibrator_topology + '.inst.dps',
+                            cal_pipe_calibrator_topology + '.uv.dps',
+                            settings['cluster'],
+                            status,
+                            nr_tasks,
+                            nr_cores_per_task,
+                            miscParameters)
+
 
     if not settings['split_targets']:
         if settings['writePackageTag']:
@@ -2478,6 +2568,52 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
                                     nr_tasks,
                                     nr_cores_per_task,
                                     miscParameters)
+
+                elif processing == 'Prefactor':
+                    calibratorBBS = settings['calibratorBBS']
+                    if not calibratorBBS:
+                        raise GenException("BBS SkyModel is not specified for pipeline coupled to calibration beam")
+
+                    calibratorDemix = settings['calibratorDemix']
+                    if len(calibratorDemix) > 1:
+                        raise GenException("calibratorDemix > 1 not supported in Prefactor right now.")
+                    writeXMLAvgPipeline(ofile,
+                                        prepipe_calibrator_topology,
+                                        cal_obs_topology,
+                                        cal_pipe_name[:-1] + "P", # To work around bug SW-681 in MoM, we should not re-use a topology
+                                        prepipe_calibrator_description,
+                                        cal_prepipe_default_template,
+                                        settings['flaggingStrategy'],
+                                        settings['calibratorBeam'][8],
+                                        calibratorDemix[0],
+                                        tar_obs_uv_data_topologies[nr_beams] + '.uv.dps',
+                                        prepipe_calibrator_topology + '.uv.dps',
+                                        settings['cluster'],
+                                        status,
+                                        nr_tasks,
+                                        nr_cores_per_task,
+                                        miscParameters)
+
+                    writeXMLCalPipe(ofile,
+                                    cal_pipe_target_topology,
+                                    cal_pipe_predecessor,
+                                    cal_pipe_target_name,
+                                    cal_pipe_target_description,  # FIXME: Might be undefined
+                                    cal_tar_pipe_default_template,  # FIXME: Might be undefined
+                                    settings['flaggingStrategy'],
+                                    calibratorBeam[8],
+                                    calibratorBBS[0][0],
+                                    settings['calibratorDemix'][0],
+                                    calibratorBBS[0][1:],
+                                    cal_pipe_predecessor  + '.uv.dps',
+                                    cal_pipe_target_topology + '.inst.dps',
+                                    cal_pipe_target_topology + '.inst.dps',
+                                    cal_pipe_target_topology + '.uv.dps',
+                                    settings['cluster'],
+                                    status,
+                                    nr_tasks,
+                                    nr_cores_per_task,
+                                    miscParameters)
         else:
             writeXMLObsEnd(ofile)
 
@@ -2572,6 +2708,9 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
             elif processing == 'LongBaseline':
                 tar_pipe_default_template = "Calibration Pipeline Target"
                 tar_pipe_description = "Target Pipeline"
+            elif processing == 'Prefactor':
+                tar_pipe_default_template = "Calibration Pipeline Target"
+                tar_pipe_description = "Prefactor Target"
 
             if settings['writePackageTag']:
                 tar_pipe_name = settings['packageTag'] + "/" + targetBeams[beamNr][2] + "/" + str(repeatNr) + "." + \
@@ -2596,6 +2735,7 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
                                        tar_pipe_input_INST_topo,
                                        tar_pipe_topologies[beamNr] + ".uv.dps",
                                        tar_pipe_topologies[beamNr] + ".uv.dps",
+                                       "","", # No output instrument model
                                        settings['cluster'],
                                        status,
                                        nr_tasks,
@@ -2657,6 +2797,57 @@ def writeRepeat(ofile, projectName, blockTopo, repeatNr, settings, imaging_pipe_
                                 nr_tasks,
                                 nr_cores_per_task,
                                 miscParameters)
+
+            elif processing == 'Prefactor':  # Should work I hope?
+                targetBBS = settings['targetBBS']
+                if targetBBS[beamNr][0][0] == '':
+                    raise GenException(
+                        "BBS SkyModel is not specified for pipeline coupled to target beam " + str(beamNr))
+
+                targetDemix = settings['targetDemix']
+                if len(targetDemix[beamNr]) > 1:
+                    raise GenException("targetDemix > 1 not supported in Prefactor right now.")
+                writeXMLAvgPipeline(ofile,
+                                    tar_prepipe_topologies[beamNr],
+                                    prepipe_target_predecessor,
+                                    tar_pipe_name[:-1] + "XP", # To work around bug SW-681 in MoM, we should not re-use a topology
+                                    prepipe_target_description,
+                                    tar_prepipe_default_template,
+                                    settings['flaggingStrategy'],
+                                    targetBeams[beamNr][8],
+                                    targetDemix[beamNr][0],
+                                    tar_obs_uv_data_topologies[beamNr],
+                                    tar_prepipe_topologies[beamNr] + ".uv.dps",
+                                    settings['cluster'],
+                                    status,
+                                    nr_tasks,
+                                    nr_cores_per_task,
+                                    miscParameters)
+
+                tar_pipe_predecessor = tar_prepipe_topologies[beamNr] + ',' + cal_pipe_calibrator_topology
+                writeXMLTargetPipeline(ofile,
+                                       tar_pipe_topologies[beamNr],
+                                       tar_pipe_predecessor,
+                                       tar_pipe_name,
+                                       tar_pipe_description,
+                                       tar_pipe_default_template,
+                                       settings['flaggingStrategy'],
+                                       targetBeams[beamNr][8],
+                                       settings['targetDemix'][beamNr][0],
+                                       settings['targetBBS'][beamNr][0][1:],
+                                       tar_prepipe_topologies[beamNr] + ".uv.dps",
+                                       tar_prepipe_topologies[beamNr] + ".uv.dps",
+                                       tar_pipe_input_INST_topo,
+                                       tar_pipe_input_INST_topo,
+                                       tar_pipe_topologies[beamNr] + ".uv.dps",
+                                       tar_pipe_topologies[beamNr] + ".uv.dps",
+                                       tar_pipe_topologies[beamNr] + ".inst.dps",
+                                       tar_pipe_topologies[beamNr] + ".inst.dps",
+                                       settings['cluster'],
+                                       status,
+                                       nr_tasks,
+                                       nr_cores_per_task,
+                                       miscParameters)
 
             elif processing == 'Pulsar':
                 # tar_obs_topology_MultiObs = tar_obs_topology + '.' + str(beamNr)
@@ -2794,7 +2985,7 @@ def writeBlock(ofile, settings, projectName, blockNr, status):
     imaging_pipe_predecessors = [[] for i in range(settings["nr_beams"])]
 
     miscParametersKeys = ["storagemanager"]
-    miscParameters = {key: value for (key, value) in settings.iteritems() if key in miscParametersKeys}
+    miscParameters = {key: value for (key, value) in list(settings.items()) if key in miscParametersKeys}
 
     blockTopo = "B%i." % (blockNr - 1,)
     for repeatNr in range(1, settings["nrRepeats"] + 1):
@@ -2813,7 +3004,7 @@ def writeBlock(ofile, settings, projectName, blockNr, status):
                                "robustParameter", "nrOfIterations", "cleaningThreshold",
                                "uvMin", "uvMax", "stokesToImage"]
         for key in imagingPipelineKeys:  # Can this be done with list comprehension as well?
-            if key not in settings.keys():
+            if key not in list(settings.keys()):
                 settings[key] = ''
         ##imagingPipelineSettings = { key: settings[key] for key in imagingPipelineKeys }
         imagingPipelineSettings = {}
@@ -2865,7 +3056,7 @@ def main(argv):
     except:
         import traceback
         traceback.print_exc(file=sys.stdout)
-        print "something went wrong here, now aborting"
+        print("something went wrong here, now aborting")
         exit(1)
 
 

@@ -1,5 +1,5 @@
 import sys
-import tkMessageBox
+import tkinter.messagebox as tkMessageBox
 
 # Colorscheme for printing information and errors
 RED_COLOR    = '\033[91m'

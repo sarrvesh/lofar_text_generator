@@ -2,10 +2,10 @@ import datetime
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 import numpy as np
-from ephem import Observer, FixedBody, degrees, Sun
+from ephem import Observer, FixedBody, degrees, Sun, Moon
 
-from errors import *
-from GUIWindow import *
+from textgen.errors import *
+from textgen.GUIWindow import *
 
 class Imaging():
     """
@@ -115,6 +115,9 @@ class Imaging():
                 showWarningPopUp('Sun is within 30 degrees of source {}.'.\
                                  format(self.targetLabel[beamIdx]) +\
                                  'Will generate text file anyway.')
+            # Check the distance between the Sun and the target beams
+            print('INFO: Moon is {} degrees away from the pointing center.'.\
+                  format(self._findDistanceToMoon(coord)) )
         
         # String common to all imaging blocks
         self.COMMON_STR = "split_targets=F\ncalibration=none\n"\
@@ -133,6 +136,21 @@ class Imaging():
         # Set the list of valid calibrators
         self.validCalibs = Imaging.VALID_CALIBS[:]
 
+    def _findDistanceToMoon(self, coord):
+        """
+        Print the distance between the specified pointing center and the Moon.
+        """
+        moon = Moon()
+        moon.compute(self.startTime)
+        coordMoon = SkyCoord('{} {}'.format(moon.ra, moon.dec), \
+                             unit=(u.hourangle, u.deg))
+        coordTarget = SkyCoord('{} {}'.format(coord.split(';')[0], \
+                              coord.split(';')[1]), \
+                              unit=(u.hourangle, u.deg))
+
+        # Find the separation between the Sun and the target
+        return coordMoon.separation(coordTarget).deg
+    
     def _findDistanceToSun(self, coord):
         """
         Print the distance between the specified pointing center and the Sun.
@@ -306,9 +324,9 @@ class Imaging():
             if self._isVisible(coord, time, self.targetObsLength):
                 return calName
             else:
-                print '{} is invisible'.format(calName)
+                print('{} is invisible'.format(calName))
                 calName = self.findHBACalibrator(time, exclude=calName)
-                print 'Will try', calName, 'next'
+                print('Will try {} next'.format(calName))
         # If control reaches here, no suitable calibrator could be found
         raise NoGoodLBACalibratorError
 
@@ -416,8 +434,8 @@ class Imaging():
         if self.rcumode == '10-90 MHz' or self.rcumode == '30-90 MHz':
             # Get the calibrator name for LBA
             calName = self._findLBACalibrator(startTime)
-            print 'INFO: Using {} as the flux density calibrator'.\
-                   format(calName)
+            print('INFO: Using {} as the flux density calibrator'.\
+                   format(calName))
             outFile.write('{};{};;;;;T;1800\n'.format(\
                       self._getCalPointing(calName), calName))
             outFile.write('Demix={};64;10;;[CasA,CygA];F\n'.format(\

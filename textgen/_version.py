@@ -4,12 +4,13 @@ This module stores the version number and the changelog
 """
 
 # Version number
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 
 # Changelog
 def changelog():
     """
     Changelog:
+    0.3.0   2019/04/25   Migrated to python 3
     0.2.0   2018/12/14   Fixed a major bug related to finding reference tile beam.
     0.1.4   2018/09/28   Enabled dysco compression for HBA observations. 
                          Added new version of xmlgen.py

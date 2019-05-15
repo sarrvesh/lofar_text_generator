@@ -1,10 +1,10 @@
-import Tkinter as tk
-import tkMessageBox 
+import tkinter as tk
+import tkinter.messagebox as tkMessageBox 
 import subprocess
 import os
 
-from errors import *
-from Imaging import *
+from textgen.errors import *
+from textgen.Imaging import *
 
 class GuiWindow():
     def __init__(self):
@@ -13,7 +13,6 @@ class GuiWindow():
         """
         self.root = tk.Tk()
         self.root.title('LOFAR Imaging Text Generator')
-        #self.root.geometry('580x470')
         self.root.option_add('*Font', 'helvetica 11')
                 
         frame = tk.Frame(self.root, padx=10, pady=5)
@@ -263,9 +262,9 @@ class GuiWindow():
             if calName is None:
                 showErrorPopUp('Unable to find a suitable calibrator.')
                 return None
-            print GREEN_COLOR +\
+            print(GREEN_COLOR +\
                   'INFO: Using {} as flux density calibrator'.format(calName) +\
-                  NO_COLOR
+                  NO_COLOR)
             startTime = img.writeCalibrator(startTime, calName, outFile)
             # Write the target block
             try:
@@ -279,9 +278,9 @@ class GuiWindow():
             if calName is None:
                 showErrorPopUp('Unable to find a suitable calibrator.')
                 return None
-            print GREEN_COLOR +\
+            print(GREEN_COLOR +\
                   'INFO: Using {} as flux density calibrator'.format(calName) +\
-                  NO_COLOR
+                  NO_COLOR)
             startTime = img.writeCalibrator(startTime, calName, outFile)
             
         outFile.close()
@@ -291,21 +290,21 @@ class GuiWindow():
         try:
             subprocess.call(['./xmlgen.py', '-i', outFileName], stdout=FNULL, \
                             stderr=subprocess.STDOUT)
-            print GREEN_COLOR + 'INFO: Found xmlgen.py. Generating XML file.' +\
-                  NO_COLOR
+            print(GREEN_COLOR + 'INFO: Found xmlgen.py. Generating XML file.' +\
+                  NO_COLOR)
         except OSError:
-            print RED_COLOR + 'INFO: Could not find xmlgen.py in the ' +\
-                  'current working directory.' + NO_COLOR
+            print(RED_COLOR + 'INFO: Could not find xmlgen.py in the ' +\
+                  'current working directory.' + NO_COLOR)
             try:
                 subprocess.call(['xmlgen.py', '-i', outFileName], \
                            stdout=FNULL, stderr=subprocess.STDOUT)
-                print GREEN_COLOR + \
-                      'INFO: Found xmlgen.py. Generating XML file.' + NO_COLOR
+                print(GREEN_COLOR + \
+                      'INFO: Found xmlgen.py. Generating XML file.' + NO_COLOR)
             except OSError:
-                print RED_COLOR + 'INFO: Could not find xmlgen.py in PATH'
-                print 'INFO: Only text output will be generated.'
-                print 'INFO: Run xmlgen.py manually to generate the xml file.'+\
-                      NO_COLOR
+                print(RED_COLOR + 'INFO: Could not find xmlgen.py in PATH')
+                print('INFO: Only text output will be generated.')
+                print('INFO: Run xmlgen.py manually to generate the xml file.'+\
+                      NO_COLOR)
         FNULL.close()
         
-        print ''
+        print('')

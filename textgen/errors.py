@@ -87,7 +87,7 @@ def getErrorMessage():
         'InvalidATeamError': 'Invalid A-team source.',
         'TooManyAteamError': 'Cannot demix more than 2 sources.',
         'NoGoodLBACalibratorError': 'Could not find a good calibrator.',
-    }[sys.exc_type.__name__]
+    }[sys.exc_info()[0].__name__]
 
 def showErrorPopUp(message):
     """

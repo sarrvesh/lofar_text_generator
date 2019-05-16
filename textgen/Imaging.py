@@ -388,7 +388,7 @@ class Imaging():
         outFile.write('targetDuration_s=600\n')
         outFile.write('clock={}\n'.format(self.clockFreq))
         outFile.write('instrumentFilter={}\n'.format(self.rcumode))
-        outFile.write('nr_tasks={}\n'.format(1+int(self.nSubBands)/2))
+        outFile.write('nr_tasks={}\n'.format(1+int(self.nSubBands/2)))
         outFile.write('antennaMode={}\n'.format(self.antennaMode))
         outFile.write('flaggingStrategy=HBAdefault\n')
         outFile.write('stationList={}\n'.format(self.arrayConfig))
@@ -420,7 +420,7 @@ class Imaging():
                       self.targetObsLength*3600.)))
         outFile.write('clock={}\n'.format(self.clockFreq))
         outFile.write('instrumentFilter={}\n'.format(self.rcumode))
-        outFile.write('nr_tasks={}\n'.format(1+int(self.nSubBands)/2))
+        outFile.write('nr_tasks={}\n'.format(1+int(self.nSubBands/2)))
         outFile.write('antennaMode={}\n'.format(self.antennaMode))
         if self.rcumode == '10-90 MHz' or self.rcumode == '30-90 MHz':
             outFile.write("flaggingStrategy=LBAdefault\n")

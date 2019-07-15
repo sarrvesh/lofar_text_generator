@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # XML generator
 # xmlgen.py
 #
@@ -26,7 +26,7 @@
 # Last change by : $Author: renting $
 # Change date	   : $Date: 2016-05-18 11:47:57 +0200 (wo, 18 mei 2016) $
 
-VERSION = "4.0.2"
+VERSION = "4.0.3"
 
 import sys, getopt, time
 from xml.sax.saxutils import escape as XMLescape

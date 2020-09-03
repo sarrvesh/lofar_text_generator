@@ -9,24 +9,24 @@ from textgen.GUIWindow import *
 
 class Imaging():
     """
-    Imaging class defines all attributes and methods relevant for an 
+    Imaging class defines all attributes and methods relevant for an
     interferometric imaging observation.
     """
 
     # Have a list of valid calibrators
     VALID_CALIBS = ['3C295', '3C196', '3C48']
     #VALID_CALIBS = ['3C295', '3C196', '3C48', '3C147', '3C380']
-    
+
     # Have a list of valid A-team sources
     VALID_ATEAMS = ['CasA', 'CygA', 'TauA', 'VirA']
-    
+
     def __init__(self, gui):
         """
         Initialize the Imaging class and do check for input validity
         """
         # Get the project name
         self.projectName = gui.projNameT.get()
-        
+
         # Get the main folder name
         self.mainName = gui.mainNameT.get()
         if len(self.mainName) > 20:
@@ -49,7 +49,7 @@ class Imaging():
             raise InvalidElevationError
         if self.elevation < 0. or self.elevation > 90.:
             raise InvalidElevationError
-            
+
         # Get the averaging factors
         self.avg = gui.avgT.get()
         if len(self.avg.split(',')) != 2:
@@ -58,8 +58,8 @@ class Imaging():
            float(self.avg.split(',')[0])
            float(self.avg.split(',')[1])
         except ValueError:
-            raise InvalidAverageError           
-            
+            raise InvalidAverageError
+
         # Get the array configuration
         arrayStr = gui.arrayConfigStr.get()
         self.arrayConfig = {'Super-terp only': 'superterp',
@@ -74,13 +74,13 @@ class Imaging():
         self.subbands = gui.subbandT.get()
         self._validateSubBands()
         self.nSubBands = self._countSubBands()
-        
+
         # Check if dysco has to be enabled or disabled
         if gui.dyscoModeStr.get() == 'Enabled':
            storagemanager = "dysco"
         else:
            storagemanager = " "
-                
+
         # Get the pointing string
         try:
             self.targetLabel, self.targetRA, self.targetDec, self.demixLabel =\
@@ -88,11 +88,11 @@ class Imaging():
         except ValueError:
             raise InvalidSubbandError
         self.nBeams = len(self.targetLabel)
-        
+
         # Check for the number of beamlets
         if self.nBeams * self.nSubBands > 488:
             raise TooManyBeamletsError
-        
+
         # Get the observation duration
         try:
             self.targetObsLength = float(gui.durationT.get())
@@ -100,7 +100,7 @@ class Imaging():
             raise InvalidDurationError
         if self.targetObsLength < 0.:
             raise InvalidDurationError
-        
+
         # Check if the listed targets are above 30 degrees for the entire
         # duration of the observation
         for beamIdx in range(self.nBeams):
@@ -118,7 +118,7 @@ class Imaging():
             # Check the distance between the Sun and the target beams
             print('INFO: Moon is {} degrees away from the pointing center.'.\
                   format(self._findDistanceToMoon(coord)) )
-        
+
         # String common to all imaging blocks
         self.COMMON_STR = "split_targets=F\ncalibration=none\n"\
                 "processing=Preprocessing\n"\
@@ -150,15 +150,15 @@ class Imaging():
 
         # Find the separation between the Sun and the target
         return coordMoon.separation(coordTarget).deg
-    
+
     def _findDistanceToSun(self, coord):
         """
         Print the distance between the specified pointing center and the Sun.
-        """        
+        """
         # Find the coordinates of the Sun at the start of the observing run
         sun = Sun()
         sun.compute(self.startTime)
-        coordSun = SkyCoord('{} {}'.format(sun.ra, sun.dec), 
+        coordSun = SkyCoord('{} {}'.format(sun.ra, sun.dec),
                             unit=(u.hourangle, u.deg))
         coordTarget = SkyCoord('{} {}'.format(coord.split(';')[0], \
                               coord.split(';')[1]), \
@@ -183,7 +183,7 @@ class Imaging():
         for item in self.subbands.split(','):
             # Is it a single number?
             if '..' not in item:
-                try: 
+                try:
                     s1 = int(item)
                 except:
                     raise InvalidSubbandError
@@ -252,12 +252,13 @@ class Imaging():
         """
         Write the header section to the output text file.
         """
+        obsdate=self.startTime.strftime('%Y-%m-%d')
         outFile.write('projectName={}\n'.format(self.projectName))
         outFile.write('mainFolderName={}\n'.format(self.mainName))
-        outFile.write('mainFolderDescription=Preprocessing:{},'\
+        outFile.write('mainFolderDescription={} Preprocessing:{},'\
                       ' {}, 8bits, 1s, 64ch/sb\n\n'\
-                      .format(self.antennaMode, self.rcumode))
-    
+                      .format(obsdate,self.antennaMode, self.rcumode))
+
     def findHBACalibrator(self, time, exclude=None):
         """
         For a given datetime, return the ``best'' flux density calibrator
@@ -271,7 +272,7 @@ class Imaging():
         lofar.lat = '52.915129'
         lofar.elevation = 15.
         lofar.date = time
-        
+
         # Create a target object
         # If multiple targets are specified, use the first one
         target = FixedBody()
@@ -284,7 +285,7 @@ class Imaging():
         target._dec = coordTarget.dec.radian
         target.compute(lofar)
         targetElevation = float(target.alt)*180./np.pi
-        
+
         # Create the calibrator object
         calibrator = FixedBody()
         calibrator._epoch = '2000'
@@ -314,7 +315,7 @@ class Imaging():
     def _findLBACalibrator(self, time):
         """
         For a given observation, return the ``best'' flux density calibrator
-        for an LBA observation. Note that, for LBA, the calibrator must be 
+        for an LBA observation. Note that, for LBA, the calibrator must be
         visibile for the entire duration of the target scan unlike
         _findHBACalibrator.
         """
@@ -333,8 +334,8 @@ class Imaging():
     def _isVisible(self, coord, startTime, duration):
         """
         For a given source and datetime, check if the source is visible
-        during the specified duration. Not that the horizon here is 
-        the elevation specified by the user. Note that the coordinate of 
+        during the specified duration. Not that the horizon here is
+        the elevation specified by the user. Note that the coordinate of
         source is specified as 'RA;Dec'
         """
         endTime = startTime + datetime.timedelta(hours=duration)
@@ -345,7 +346,7 @@ class Imaging():
             lofar.lat = '52.915129'
             lofar.elevation = 15.
             lofar.date = time
-            
+
             target = FixedBody()
             target._epoch = '2000'
             coordTarget = SkyCoord('{} {}'.format(coord.split(';')[0], \
@@ -355,7 +356,7 @@ class Imaging():
             target._dec = coordTarget.dec.radian
             target.compute(lofar)
             targetElevation = float(target.alt)*180./np.pi
-            
+
             if targetElevation < self.elevation:
                 return False
 
@@ -379,7 +380,7 @@ class Imaging():
 
     def writeCalibrator(self, startTime, calibName, outFile):
         """
-        Write the calibrator section. This is almost always used for HBA 
+        Write the calibrator section. This is almost always used for HBA
         and never for LBA observations.
         """
         outFile.write('BLOCK\n\n')
@@ -403,7 +404,7 @@ class Imaging():
         outFile.write('\n')
 
         # Return the start time for the next block
-        return startTime + datetime.timedelta(minutes=11)        
+        return startTime + datetime.timedelta(minutes=11)
 
     def writeTarget(self, startTime, outFile):
         """
@@ -441,7 +442,7 @@ class Imaging():
             outFile.write('Demix={};64;10;;[CasA,CygA];F\n'.format(\
                       self.avg.replace(',', ';')))
         else:
-            # If we have more than one target beam, we need to set the 
+            # If we have more than one target beam, we need to set the
             # reference tile beam.
             if self.nBeams > 1:
                 refCoord = self._getTileBeam()
@@ -462,8 +463,8 @@ class Imaging():
                 for item in self.demixLabel[index]:
                     if item not in Imaging.VALID_ATEAMS:
                         raise InvalidATeamError
-                # The time and frequency demixing intervals should be an integer 
-                # multiple of the time and freq averaging values specified by 
+                # The time and frequency demixing intervals should be an integer
+                # multiple of the time and freq averaging values specified by
                 # the user
                 demixInterval = '64;10'
                 if 64%int(self.avg.split(',')[0]) != 0:
@@ -484,9 +485,9 @@ class Imaging():
 
     def _getTileBeam(self):
         """
-        Compute the midpoint between the different mentioned pointings for the 
-        tile beam. Note that the midpoint on the sky for large angular 
-        separation is ill-defined. In our case, it is almost always within ~7 
+        Compute the midpoint between the different mentioned pointings for the
+        tile beam. Note that the midpoint on the sky for large angular
+        separation is ill-defined. In our case, it is almost always within ~7
         degrees and so this function should be fine. For more details, see
         https://github.com/astropy/astropy/issues/5766
         """
@@ -507,12 +508,12 @@ class Imaging():
            tempDec=0.
            for index in range(self.nBeams):
               coord = SkyCoord('{} {}'.format( \
-                             self.targetRA[index], self.targetDec[index]), 
+                             self.targetRA[index], self.targetDec[index]),
                              unit=(u.hourangle, u.deg))
               tempRA += ((coord.ra.degree + 10.)%360.)
               tempDec += coord.dec.degree
            _tileBeam = SkyCoord(tempRA/self.nBeams - 10., tempDec/self.nBeams, unit=u.deg)
         return _tileBeam
-    
+
     def __exit__(self, *err):
         self.close()

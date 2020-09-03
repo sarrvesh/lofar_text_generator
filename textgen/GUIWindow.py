@@ -34,7 +34,7 @@ class GuiWindow():
         dateL = tk.Label(frame, text='Start date/time:')
         dateL.grid(row=rowIdx, sticky='E')
         self.dateT = tk.Entry(frame)
-        self.dateT.insert(0, 'yyyy-mm-dd-hh-mm-ss')
+        self.dateT.insert(0, datetime.datetime.now().strftime('%Y-%m-dd-hh-mm-00'))#'yyyy-mm-dd-hh-mm-ss')
         #self.dateT.bind('<Button-1>', self.clearEntry)
         self.dateT.grid(row=rowIdx, column=1, sticky='W')
 
@@ -193,7 +193,7 @@ class GuiWindow():
         self.projNameT.delete(0, tk.END)
         self.mainNameT.delete(0, tk.END)
         self.dateT.delete(0, tk.END)
-        self.dateT.insert(0, 'yyyy-mm-dd-hh-mm-ss')
+        self.dateT.insert(0, datetime.datetime.now().strftime('%Y-%m-dd-hh-mm-00'))
         self.elevationT.delete(0, tk.END)
         self.elevationT.insert(0, '20')
         self.avgT.delete(0, tk.END)

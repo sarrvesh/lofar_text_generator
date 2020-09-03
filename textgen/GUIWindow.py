@@ -1,5 +1,5 @@
 import tkinter as tk
-import tkinter.messagebox as tkMessageBox 
+import tkinter.messagebox as tkMessageBox
 import subprocess
 import os
 
@@ -14,22 +14,22 @@ class GuiWindow():
         self.root = tk.Tk()
         self.root.title('LOFAR Imaging Text Generator')
         self.root.option_add('*Font', 'helvetica 11')
-                
+
         frame = tk.Frame(self.root, padx=10, pady=5)
         frame.grid()
-        
-        rowIdx = 0        
+
+        rowIdx = 0
         projNameL = tk.Label(frame, text='Project Name:')
         projNameL.grid(row=rowIdx, sticky='E')
         self.projNameT = tk.Entry(frame, width=7)
         self.projNameT.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         mainNameL = tk.Label(frame, text='Main folder name:')
         mainNameL.grid(row=rowIdx, sticky='E')
         self.mainNameT = tk.Entry(frame)
         self.mainNameT.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         dateL = tk.Label(frame, text='Start date/time:')
         dateL.grid(row=rowIdx, sticky='E')
@@ -37,7 +37,7 @@ class GuiWindow():
         self.dateT.insert(0, 'yyyy-mm-dd-hh-mm-ss')
         #self.dateT.bind('<Button-1>', self.clearEntry)
         self.dateT.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         elevationL = tk.Label(frame, text='Min. '+\
                                    'elevation (deg):')
@@ -45,7 +45,7 @@ class GuiWindow():
         self.elevationT = tk.Entry(frame, width=5)
         self.elevationT.insert(tk.END, '30')
         self.elevationT.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         avgL = tk.Label(frame, text='Freq. and time. averaging:')
         avgL.grid(row=rowIdx, sticky='E')
@@ -53,7 +53,7 @@ class GuiWindow():
         self.avgT.insert(0, '4,1')
         #self.avgT.bind('<Button-1>', self.clearEntry)
         self.avgT.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         arrayConfigL = tk.Label(frame, text='Array configuration:')
         arrayConfigL.grid(row=rowIdx, sticky='E')
@@ -64,7 +64,7 @@ class GuiWindow():
         self.arrayConfigOption = tk.OptionMenu(frame, \
                                       self.arrayConfigStr, *arrayConfig)
         self.arrayConfigOption.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         subbandL = tk.Label(frame, text='Sub band list:')
         subbandL.grid(row=rowIdx, sticky='E')
@@ -90,7 +90,7 @@ class GuiWindow():
         self.subbandT = tk.Entry(frame, width=45)
         self.subbandT.configure(state='readonly')
         self.subbandT.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         AntennaModeL = tk.Label(frame, text='Antenna mode:')
         AntennaModeL.grid(row=rowIdx, sticky='E')
@@ -101,8 +101,8 @@ class GuiWindow():
                    'HBA Joined', 'HBA Joined Inner']
         self.antennaModeOption = tk.OptionMenu(frame, \
                                                self.antennaModeStr, *antMode)
-        self.antennaModeOption.grid(row=rowIdx, column=1, sticky='W')        
-        
+        self.antennaModeOption.grid(row=rowIdx, column=1, sticky='W')
+
         rowIdx += 1
         pointL = tk.Message(frame, text='Target pointing details '+\
                                  '(use multiple lines for '+\
@@ -111,14 +111,14 @@ class GuiWindow():
         self.pointT = tk.Text(frame, height=3, width=45)
         self.pointT.insert(tk.END, '<label>,<ra (hms)>,<dec (dms)>,<demix>')
         self.pointT.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         durationL = tk.Label(frame, text='Target duration (hours):')
         durationL.grid(row=rowIdx, sticky='E')
         self.durationT = tk.Entry(frame, width=5)
         self.durationT.insert(0, '8')
         self.durationT.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         compressL = tk.Label(frame, text='Dysco compression:')
         compressL.grid(row=rowIdx, sticky='E')
@@ -128,23 +128,21 @@ class GuiWindow():
         self.dyscoModeOption = tk.OptionMenu(frame, self.dyscoModeStr, \
                                              *dyscoMode)
         self.dyscoModeOption.grid(row=rowIdx, column=1, sticky='W')
-        
+
         rowIdx += 1
         self.submitB = tk.Button(frame, text='SUBMIT', justify=tk.CENTER,\
                                  command=self.actionSubmit)
         self.submitB.grid(row=rowIdx, column=1, sticky='W', pady=10)
-        
+
         self.cancelB = tk.Button(frame, text='RESET', justify=tk.CENTER,\
                                  command=self.resetForms)
         self.cancelB.grid(row=rowIdx, column=1, padx=100, sticky='W', pady=10)
 
     def _changeAntennaMode(self, *args):
         """
-        Set the antenna mode dropdown button based on the chosen RCU mode. 
-        Note that at the same time, we should also disable the Tier-1 
+        Set the antenna mode dropdown button based on the chosen RCU mode.
+        Note that at the same time, we should also disable the Tier-1
         option button.
-        Dysco compression should also be set here. Dysco compression is 
-        enabled when HBA RCU modes are chosen.
         """
         optionMenu = self.antennaModeOption.children["menu"]
         optionMenu.delete(0, "end")
@@ -157,7 +155,6 @@ class GuiWindow():
                        'HBA Joined', 'HBA Joined Inner']
             self.antennaModeStr.set('HBA Dual Inner')
             self.subbandR1.configure(state='normal')
-            self.dyscoModeStr.set('Enabled')
         else:
             # Display all LBA modes
             antMode = ['LBA Inner', 'LBA Outer', 'LBA Sparse Even', \
@@ -165,14 +162,13 @@ class GuiWindow():
             self.antennaModeStr.set('LBA Outer')
             self.subbandR1.configure(state='disabled')
             self.subbandOption.set(2); self._setSubbandText()
-            self.dyscoModeStr.set('Disabled')
         for mode in antMode:
             optionMenu.add_command(label=mode, command=tk._setit(\
                                    self.antennaModeStr, mode))
 
     def _setSubbandText(self):
         """
-        Based on which radio button is enabled, set the appropriate value in 
+        Based on which radio button is enabled, set the appropriate value in
         the subband list text box.
         """
         option = self.subbandOption.get()
@@ -221,16 +217,16 @@ class GuiWindow():
         for mode in antMode:
             optionMenu.add_command(label=mode, command=tk._setit(\
                                    self.antennaModeStr, mode))
-        
+
     def clearEntry(self, event):
         event.widget.delete(0, 'end')
-    
+
     def actionSubmit(self):
         """
         This function coordinates all the background processing that happens
         after the SUBMIT button is clicked.
         """
-        
+
         try:
             img = Imaging(self)
         except:
@@ -245,7 +241,7 @@ class GuiWindow():
 
         # Write the header section
         img.makeHeader(outFile)
-        
+
         startTime = img.startTime
         if img.rcumode == '10-90 MHz' or img.rcumode == '30-90 MHz':
             # In the case LBA
@@ -282,9 +278,9 @@ class GuiWindow():
                   'INFO: Using {} as flux density calibrator'.format(calName) +\
                   NO_COLOR)
             startTime = img.writeCalibrator(startTime, calName, outFile)
-            
+
         outFile.close()
-        
+
         # If xmlgen.py exists, convert the text file to xml
         FNULL = open(os.devnull, 'w')
         try:
@@ -306,5 +302,5 @@ class GuiWindow():
                 print('INFO: Run xmlgen.py manually to generate the xml file.'+\
                       NO_COLOR)
         FNULL.close()
-        
+
         print('')

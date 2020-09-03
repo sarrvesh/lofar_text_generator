@@ -137,6 +137,14 @@ class GuiWindow():
         self.cancelB = tk.Button(frame, text='RESET', justify=tk.CENTER,\
                                  command=self.resetForms)
         self.cancelB.grid(row=rowIdx, column=1, padx=100, sticky='W', pady=10)
+        self.momB = tk.Button(frame, text='Open MoM', justify=tk.CENTER, \
+                                 command=self.openMoM)
+        self.momB.grid(row=0, column=1, padx=100, sticky='E',pady=10)
+
+    def openMoM(self, *args):
+        import webbrowser
+        webbrowser.open("https://lofar.astron.nl/mom3/user/setUpImportXML2.do",new=True)
+
 
     def _changeAntennaMode(self, *args):
         """

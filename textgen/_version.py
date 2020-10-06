@@ -4,18 +4,23 @@ This module stores the version number and the changelog
 """
 
 # Version number
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 
 # Changelog
 def changelog():
     """
     Changelog:
+    0.4.0   2020/09/03   Added date to description of main folder.
+                         Added button to MoM import xml
+                         Include current year and month in date
+                         Use dysco by default also for LBA
+                         Adjust maximum subband for 210-250 MHz filter
     0.3.0   2019/04/25   Migrated to python 3
     0.2.0   2018/12/14   Fixed a major bug related to finding reference tile beam.
-    0.1.4   2018/09/28   Enabled dysco compression for HBA observations. 
+    0.1.4   2018/09/28   Enabled dysco compression for HBA observations.
                          Added new version of xmlgen.py
     0.1.3   2017/12/08   Use proper labels for reference beams.
-                         Demixing interval is forced to be an integer multiple 
+                         Demixing interval is forced to be an integer multiple
                          of the averaging parameters.
     0.1.2   2017/12/08   Ignore spaces in the pointing string.
                          Warn if the Sun is less than 30 degrees away.

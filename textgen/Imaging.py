@@ -193,6 +193,9 @@ class Imaging():
                 elif self.rcumode == '170-230 MHz':
                     if s1<64 or s1>448:
                         raise OutOfBoundsSubBandError
+                elif self.rcumode == '210-250 MHz':
+                    if s1<64 or s1>240:
+                        raise OutOfBoundsSubBandError
                 else:
                     if s1<51 or s1>461:
                         raise OutOfBoundsSubBandError
@@ -210,6 +213,9 @@ class Imaging():
                         raise OutOfBoundsSubBandError
                 elif self.rcumode == '170-230 MHz':
                     if s1<64 or s2>448:
+                        raise OutOfBoundsSubBandError
+                elif self.rcumode == '210-250 MHz':
+                    if s1<64 or s2>240:
                         raise OutOfBoundsSubBandError
                 else:
                     if s1<51 or s2>461:

@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.messagebox as tkMessageBox
 import subprocess
 import os
+import webbrowser
 
 from textgen.errors import *
 from textgen.Imaging import *
@@ -142,7 +143,6 @@ class GuiWindow():
         self.momB.grid(row=0, column=1, padx=100, sticky='E',pady=10)
 
     def openMoM(self, *args):
-        import webbrowser
         webbrowser.open("https://lofar.astron.nl/mom3/user/setUpImportXML2.do",new=True)
 
 

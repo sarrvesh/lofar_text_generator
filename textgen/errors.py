@@ -65,7 +65,7 @@ class NoGoodLBACalibratorError(Exception):
 
 def getErrorMessage():
     """
-    Returns the appropriate error message for the most recently raised 
+    Returns the appropriate error message for the most recently raised
     exception.
     """
     return {
